@@ -9,13 +9,7 @@ Built and verified on a real Android TV (Xiaomi Mi TV, Android 10 / API 29, 1280
 ![screenshot_2](screenshot_2.jpg)
 ## Install
 
-```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
-
-The APK at `app/build/outputs/apk/debug/app-debug.apk` is signed with the standard debug
-key and installs directly. `assembleRelease` produces an *unsigned* APK — it needs your own
-keystore before it can be installed, so use the debug APK unless you plan to publish.
+Go to [Releases](https://github.com/ramysami/quran-kareem-radio-tv/releases).
 
 ## Features
 
