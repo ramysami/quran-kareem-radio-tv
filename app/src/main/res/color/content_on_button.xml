@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark ink once the gold focus fill lands behind it, warm cream otherwise. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="@color/navy_deep" />
+    <item android:color="@color/text_primary" />
+</selector>

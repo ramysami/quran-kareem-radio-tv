@@ -1,0 +1,12 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+
+# Built APKs are distributed via GitHub Releases, not committed
+*.apk
+.externalNativeBuild/
+.cxx/

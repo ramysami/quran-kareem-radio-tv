@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:minHeight="60dp"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:background="@drawable/row_settings"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:duplicateParentState="false">
+
+    <!-- Passes the row's focused state down, so the labels can flip to dark ink -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:duplicateParentState="true">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/content_on_button"
+            android:textSize="17sp"
+            android:duplicateParentState="true"
+            tools:text="Change stream URL" />
+
+        <TextView
+            android:id="@+id/summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textColor="@color/summary_on_button"
+            android:textSize="13sp"
+            android:maxLines="2"
+            android:ellipsize="middle"
+            android:duplicateParentState="true"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="https://stream.radiojar.com/8s5u5tpdtwzuv" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/check"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginLeft="12dp"
+        android:src="@drawable/ic_check"
+        android:contentDescription="@null"
+        android:duplicateParentState="true"
+        android:visibility="invisible" />
+</LinearLayout>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="ltr"
+    android:background="@drawable/bg_gradient">
+
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null"
+        android:src="@drawable/bg_default"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/scrim_settings"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintWidth_percent="0.66"
+        app:layout_constraintHorizontal_bias="0" />
+
+    <TextView
+        android:id="@+id/screenTitle"
+        style="@style/Text.Station"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:layout_marginLeft="@dimen/overscan_horizontal"
+        android:layout_marginTop="@dimen/overscan_vertical"
+        android:text="@string/settings_title"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
+      The horizontal padding is the room a focused row grows into, reachable
+      because clipToPadding is off; the left margin is reduced by the same amount
+      so rows still line up with the title. clipChildren stays ON so rows that
+      scroll out of view are still clipped instead of drawing over the header.
+    -->
+    <ScrollView
+        android:id="@+id/scroller"
+        android:layout_width="544dp"
+        android:layout_height="0dp"
+        android:layout_marginLeft="36dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="@dimen/overscan_vertical"
+        android:clipToPadding="false"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="12dp"
+        android:scrollbars="none"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/screenTitle"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- ============ Stream ============ -->
+            <TextView
+                style="@style/Text.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="2dp"
+                android:text="@string/settings_section_stream" />
+
+            <include
+                android:id="@+id/rowStreamEdit"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowStreamReset"
+                layout="@layout/item_setting" />
+
+            <!-- ============ Background ============ -->
+            <TextView
+                style="@style/Text.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="2dp"
+                android:text="@string/settings_section_background" />
+
+            <include
+                android:id="@+id/rowBgDefault"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowBgNone"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowBgCustom"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowBgReset"
+                layout="@layout/item_setting" />
+
+            <!-- ============ Reset ============ -->
+            <TextView
+                style="@style/Text.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="2dp"
+                android:text="@string/settings_section_reset" />
+
+            <include
+                android:id="@+id/rowResetAll"
+                layout="@layout/item_setting" />
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

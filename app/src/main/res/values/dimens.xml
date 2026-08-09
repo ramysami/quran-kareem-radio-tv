@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TV overscan-safe insets: ~5% of a 960x540dp screen -->
+    <dimen name="overscan_horizontal">48dp</dimen>
+    <dimen name="overscan_vertical">27dp</dimen>
+
+    <dimen name="panel_width">440dp</dimen>
+    <dimen name="btn_primary_height">54dp</dimen>
+    <dimen name="btn_secondary_height">44dp</dimen>
+    <dimen name="icon_size">21dp</dimen>
+</resources>

@@ -1,0 +1,3 @@
+-dontwarn org.slf4j.**
+-dontwarn okhttp3.**
+-keep class androidx.media3.** { *; }

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">إذاعة القرآن الكريم</string>
+
+    <string name="station_name">إذاعة القرآن الكريم</string>
+    <string name="station_subtitle">من القاهرة · بث مباشر</string>
+
+    <!-- أزرار التحكم -->
+    <string name="action_play">تشغيل</string>
+    <string name="action_pause">إيقاف مؤقت</string>
+    <string name="action_stop">إيقاف</string>
+    <string name="action_sleep_timer">مؤقت النوم</string>
+    <string name="action_settings">الإعدادات</string>
+
+    <!-- حالة التشغيل -->
+    <string name="status_idle">جاهز</string>
+    <string name="status_connecting">جارٍ الاتصال…</string>
+    <string name="status_buffering">جارٍ التحميل…</string>
+    <string name="status_playing">على الهواء</string>
+    <string name="status_paused">متوقف مؤقتًا</string>
+    <string name="status_stopped">متوقف</string>
+    <string name="status_error">تعذّر الاتصال — اضغط تشغيل للمحاولة مرة أخرى</string>
+    <string name="status_no_network">لا يوجد اتصال بالإنترنت</string>
+
+    <!-- مؤقت النوم -->
+    <string name="sleep_dialog_title">مؤقت النوم</string>
+    <string name="sleep_5">٥ دقائق</string>
+    <string name="sleep_15">١٥ دقيقة</string>
+    <string name="sleep_30">٣٠ دقيقة</string>
+    <string name="sleep_60">ساعة واحدة</string>
+    <string name="sleep_custom">مدة مخصصة…</string>
+    <string name="sleep_off">إيقاف المؤقت</string>
+    <string name="sleep_custom_title">مدة مخصصة</string>
+    <string name="sleep_custom_hint">عدد الدقائق (١ – ٦٠٠)</string>
+    <string name="sleep_active">يتوقف بعد %1$s</string>
+    <string name="sleep_set">تم ضبط مؤقت النوم على %1$s</string>
+    <string name="sleep_cancelled">تم إيقاف مؤقت النوم</string>
+    <string name="sleep_minutes_value">%1$d دقيقة</string>
+    <string name="sleep_invalid">أدخل رقمًا بين ١ و ٦٠٠</string>
+
+    <!-- الإعدادات -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_section_stream">البث</string>
+    <string name="settings_stream_url">رابط البث</string>
+    <string name="settings_stream_edit">تغيير رابط البث</string>
+    <string name="settings_stream_reset">استعادة الرابط الافتراضي</string>
+    <string name="settings_stream_dialog_title">رابط البث</string>
+    <string name="settings_stream_hint">https://…</string>
+    <string name="settings_using_default">يتم استخدام رابط المحطة الافتراضي</string>
+    <string name="settings_using_custom">يتم استخدام رابط مخصص</string>
+
+    <string name="settings_section_background">الخلفية</string>
+    <string name="settings_bg_default">الصورة الافتراضية</string>
+    <string name="settings_bg_default_summary">تصميم إذاعة القرآن الكريم الأصلي</string>
+    <string name="settings_bg_none">بدون صورة خلفية</string>
+    <string name="settings_bg_none_summary">تدرّج أزرق داكن بسيط</string>
+    <string name="settings_bg_custom">صورة من اختياري</string>
+    <string name="settings_bg_custom_summary">اختر ملفًا من هذا الجهاز أو أدخل رابط صورة</string>
+    <string name="settings_bg_reset">استعادة الخلفية الافتراضية</string>
+
+    <string name="settings_section_reset">إعادة الضبط</string>
+    <string name="settings_reset_all">استعادة جميع الإعدادات الافتراضية</string>
+    <string name="settings_reset_all_summary">يعود رابط البث والخلفية إلى القيم الأصلية</string>
+    <string name="settings_reset_all_confirm">هل تريد استعادة جميع الإعدادات الافتراضية؟</string>
+    <string name="settings_reset_done">تمت استعادة جميع الإعدادات الافتراضية</string>
+
+    <string name="custom_bg_dialog_title">اختر صورة</string>
+    <string name="custom_bg_browse">تصفّح ملفات هذا الجهاز</string>
+    <string name="custom_bg_url">إدخال رابط صورة</string>
+    <string name="custom_bg_url_title">رابط الصورة</string>
+    <string name="custom_bg_url_hint">https://example.com/image.jpg</string>
+    <string name="custom_bg_no_picker">لا يوجد متصفح ملفات على هذا التلفاز — استخدم رابط صورة بدلًا من ذلك</string>
+    <string name="custom_bg_applied">تم تحديث الخلفية</string>
+
+    <string name="bg_load_failed">تعذّر تحميل الصورة — سيتم عرض الخلفية الافتراضية</string>
+    <string name="bg_permission_lost">تعذّر الوصول إلى الصورة — سيتم عرض الخلفية الافتراضية</string>
+    <string name="url_invalid">أدخل رابطًا صحيحًا يبدأ بـ ‎http://‎ أو ‎https://‎</string>
+
+    <string name="dialog_ok">موافق</string>
+    <string name="dialog_cancel">إلغاء</string>
+    <string name="dialog_save">حفظ</string>
+    <string name="dialog_reset">إعادة الضبط</string>
+    <string name="saved">تم الحفظ</string>
+</resources>

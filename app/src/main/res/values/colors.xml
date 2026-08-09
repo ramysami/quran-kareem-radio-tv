@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="navy_deep">#FF061225</color>
+    <color name="navy">#FF0C1E3D</color>
+    <color name="navy_mid">#FF12294F</color>
+
+    <color name="gold">#FFD9AE72</color>
+    <color name="gold_bright">#FFF0CE9A</color>
+    <color name="gold_deep">#FFBE9159</color>
+    <color name="gold_dim">#FF8A6E48</color>
+
+    <color name="text_primary">#FFF5EDE0</color>
+    <color name="text_secondary">#FFA9B6CB</color>
+    <color name="text_muted">#FF6F7F99</color>
+
+    <color name="on_air">#FF7FD4A2</color>
+    <color name="error_red">#FFE08A7A</color>
+
+    <color name="panel_fill">#99050D1C</color>
+    <color name="panel_fill_focused">#FFD9AE72</color>
+    <color name="panel_stroke">#33D9AE72</color>
+
+    <color name="transparent">#00000000</color>
+</resources>

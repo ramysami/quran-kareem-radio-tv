@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Subtle version, used with the default artwork: its left side is already deep
+  navy, so anything heavier here visibly dulls the gold wordmark.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="0"
+        android:startColor="#66040B18"
+        android:centerColor="#33040B18"
+        android:endColor="#00040B18"
+        android:centerX="0.45"
+        android:type="linear" />
+</shape>

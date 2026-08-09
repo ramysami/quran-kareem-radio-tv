@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.QuranRadio" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_gradient</item>
+        <item name="android:colorAccent">@color/gold</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+
+    <style name="Theme.QuranRadio.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:colorAccent">@color/gold</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+    </style>
+
+    <!-- Big, clear text — TVs are read from across the room -->
+    <style name="Text.Station" parent="">
+        <item name="android:textColor">@color/gold_bright</item>
+        <item name="android:textSize">40sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:shadowColor">#CC000000</item>
+        <item name="android:shadowRadius">12</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+    </style>
+
+    <style name="Text.Subtitle" parent="">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0.18</item>
+    </style>
+
+    <style name="Text.Status" parent="">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Text.SectionHeader" parent="">
+        <item name="android:textColor">@color/gold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.14</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>

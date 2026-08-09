@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Used for user-supplied images, which may be bright or busy anywhere; the
+  controls have to stay readable over all of them.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="0"
+        android:startColor="#F2040B18"
+        android:centerColor="#B3040B18"
+        android:endColor="#00040B18"
+        android:centerX="0.45"
+        android:type="linear" />
+</shape>

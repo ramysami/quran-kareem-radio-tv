@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quran Kareem Radio</string>
+
+    <string name="station_name">Quran Kareem Radio</string>
+    <string name="station_subtitle">Cairo · Live Broadcast</string>
+
+    <!-- Transport controls -->
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_sleep_timer">Sleep Timer</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Playback status -->
+    <string name="status_idle">Ready</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_buffering">Buffering…</string>
+    <string name="status_playing">On Air</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_error">Connection failed — press Play to retry</string>
+    <string name="status_no_network">No internet connection</string>
+
+    <!-- Sleep timer -->
+    <string name="sleep_dialog_title">Sleep Timer</string>
+    <string name="sleep_5">5 minutes</string>
+    <string name="sleep_15">15 minutes</string>
+    <string name="sleep_30">30 minutes</string>
+    <string name="sleep_60">1 hour</string>
+    <string name="sleep_custom">Custom…</string>
+    <string name="sleep_off">Turn off timer</string>
+    <string name="sleep_custom_title">Custom Sleep Timer</string>
+    <string name="sleep_custom_hint">Minutes (1 – 600)</string>
+    <string name="sleep_active">Stops in %1$s</string>
+    <string name="sleep_set">Sleep timer set for %1$s</string>
+    <string name="sleep_cancelled">Sleep timer turned off</string>
+    <string name="sleep_minutes_value">%1$d minutes</string>
+    <string name="sleep_invalid">Enter a number between 1 and 600</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_stream">Stream</string>
+    <string name="settings_stream_url">Stream URL</string>
+    <string name="settings_stream_edit">Change stream URL</string>
+    <string name="settings_stream_reset">Restore default stream URL</string>
+    <string name="settings_stream_dialog_title">Stream URL</string>
+    <string name="settings_stream_hint">https://…</string>
+    <string name="settings_using_default">Using the default station URL</string>
+    <string name="settings_using_custom">Using a custom URL</string>
+
+    <string name="settings_section_background">Background</string>
+    <string name="settings_bg_default">Default image</string>
+    <string name="settings_bg_default_summary">The original Quran Kareem Radio artwork</string>
+    <string name="settings_bg_none">No background image</string>
+    <string name="settings_bg_none_summary">Plain deep-blue gradient</string>
+    <string name="settings_bg_custom">My own image</string>
+    <string name="settings_bg_custom_summary">Pick a file on this device or enter an image URL</string>
+    <string name="settings_bg_reset">Restore default background</string>
+
+    <string name="settings_section_reset">Reset</string>
+    <string name="settings_reset_all">Restore all default settings</string>
+    <string name="settings_reset_all_summary">Stream URL and background go back to factory values</string>
+    <string name="settings_reset_all_confirm">Restore every setting to its default?</string>
+    <string name="settings_reset_done">All settings restored to defaults</string>
+
+    <string name="custom_bg_dialog_title">Choose an Image</string>
+    <string name="custom_bg_browse">Browse files on this device</string>
+    <string name="custom_bg_url">Enter an image URL</string>
+    <string name="custom_bg_url_title">Image URL</string>
+    <string name="custom_bg_url_hint">https://example.com/image.jpg</string>
+    <string name="custom_bg_no_picker">No file browser is installed on this TV — use an image URL instead</string>
+    <string name="custom_bg_applied">Background updated</string>
+
+    <string name="bg_load_failed">That image could not be loaded — showing the default</string>
+    <string name="bg_permission_lost">Access to that image was lost — showing the default</string>
+    <string name="url_invalid">Enter a valid http:// or https:// address</string>
+
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_save">Save</string>
+    <string name="dialog_reset">Reset</string>
+    <string name="saved">Saved</string>
+</resources>
