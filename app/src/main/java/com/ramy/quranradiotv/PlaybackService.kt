@@ -1,7 +1,10 @@
 package com.ramy.quranradiotv
 
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -76,6 +79,24 @@ class PlaybackService : MediaSessionService() {
             player.stop()
             player.clearMediaItems()
         }
+
+        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+    }
+
+    /**
+     * Once the display is off nothing can be heard, but a live stream carries on
+     * pulling data regardless — measured at a full 12 minutes of silent download
+     * after the remote's power button. So the screen going off ends playback.
+     */
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != Intent.ACTION_SCREEN_OFF) return
+            if (player.mediaItemCount == 0) return
+
+            player.stop()
+            player.clearMediaItems()
+            SleepTimer.cancel()
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -89,6 +110,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(screenOffReceiver) }
         SleepTimer.onExpire = null
         SleepTimer.cancel()
         mediaSession?.run {
