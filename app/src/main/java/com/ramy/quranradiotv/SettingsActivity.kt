@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -32,6 +33,12 @@ class SettingsActivity : AppCompatActivity() {
         if (uri != null) applyCustomBackground(uri)
     }
 
+    /** Settings can be left open mid-recitation, so it holds the TV awake too. */
+    private val playbackListener: (Boolean) -> Unit = { active ->
+        if (active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -41,6 +48,16 @@ class SettingsActivity : AppCompatActivity() {
         bindRows()
         render()
         binding.rowStreamEdit.root.requestFocus()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        PlaybackStatus.addListener(playbackListener)
+    }
+
+    override fun onStop() {
+        PlaybackStatus.removeListener(playbackListener)
+        super.onStop()
     }
 
     // ---------------------------------------------------------------- rows

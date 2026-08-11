@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -51,6 +52,8 @@ class MainActivity : AppCompatActivity() {
 
     private val sleepListener: (Long) -> Unit = { remaining -> renderSleepTimer(remaining) }
 
+    private val playbackListener: (Boolean) -> Unit = { active -> keepScreenAwake(active) }
+
     // ---------------------------------------------------------------- lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,12 +62,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         prefs = Prefs(this)
-
-        // Deliberately no FLAG_KEEP_SCREEN_ON: the display should follow the TV's
-        // own sleep timeout in every state. Audio survives the screen going off
-        // because PlaybackService is a foreground service holding a *partial*
-        // wake lock (WAKE_MODE_NETWORK) for exactly as long as it is playing —
-        // that keeps the CPU and Wi-Fi alive without keeping the panel lit.
 
         binding.btnPlayPause.setOnClickListener { togglePlayPause() }
         binding.btnStop.setOnClickListener { stopPlayback() }
@@ -85,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         connectToService()
         SleepTimer.addListener(sleepListener)
+        PlaybackStatus.addListener(playbackListener)
     }
 
     override fun onResume() {
@@ -95,8 +93,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         SleepTimer.removeListener(sleepListener)
+        PlaybackStatus.removeListener(playbackListener)
         releaseController()
         super.onStop()
+    }
+
+    /**
+     * Holds the display on while there is audio to listen to, and hands the TV
+     * back to its normal sleep timeout the moment there isn't. Without this the
+     * screensaver appears mid-recitation and the TV then drops into standby.
+     */
+    private fun keepScreenAwake(active: Boolean) {
+        if (active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     // ---------------------------------------------------------------- session

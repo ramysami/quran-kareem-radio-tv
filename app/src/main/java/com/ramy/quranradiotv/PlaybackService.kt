@@ -111,6 +111,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         runCatching { unregisterReceiver(screenOffReceiver) }
+        PlaybackStatus.set(false)
         SleepTimer.onExpire = null
         SleepTimer.cancel()
         mediaSession?.run {
@@ -122,6 +123,16 @@ class PlaybackService : MediaSessionService() {
     }
 
     private inner class PlayerListener : Player.Listener {
+
+        override fun onEvents(player: Player, events: Player.Events) {
+            // Buffering with intent to play counts, so a mid-listen reconnect
+            // doesn't hand the TV back to the screensaver.
+            PlaybackStatus.set(
+                player.playWhenReady &&
+                    player.playbackState != Player.STATE_IDLE &&
+                    player.playbackState != Player.STATE_ENDED
+            )
+        }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) retryCount = 0
