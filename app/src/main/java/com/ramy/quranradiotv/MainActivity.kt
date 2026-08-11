@@ -15,7 +15,6 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -60,7 +59,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         prefs = Prefs(this)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Deliberately no FLAG_KEEP_SCREEN_ON: the display should follow the TV's
+        // own sleep timeout in every state. Audio survives the screen going off
+        // because PlaybackService is a foreground service holding a *partial*
+        // wake lock (WAKE_MODE_NETWORK) for exactly as long as it is playing —
+        // that keeps the CPU and Wi-Fi alive without keeping the panel lit.
 
         binding.btnPlayPause.setOnClickListener { togglePlayPause() }
         binding.btnStop.setOnClickListener { stopPlayback() }
