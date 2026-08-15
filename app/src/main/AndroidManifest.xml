@@ -29,8 +29,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:screenOrientation="landscape"
-            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|orientation">
+            android:configChanges="keyboard|keyboardHidden|navigation">
 
             <!-- Android TV launcher -->
             <intent-filter>
@@ -48,8 +47,7 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
-            android:screenOrientation="landscape"
-            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|orientation"
+            android:configChanges="keyboard|keyboardHidden|navigation"
             android:theme="@style/Theme.QuranRadio" />
 
         <service

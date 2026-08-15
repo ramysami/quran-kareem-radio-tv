@@ -80,14 +80,18 @@ class PlaybackService : MediaSessionService() {
             player.clearMediaItems()
         }
 
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        // TV only. There, the screen is held on for as long as the radio plays,
+        // so the display going off can only mean a deliberate press of the power
+        // button — and a live stream left running in standby just burns data on
+        // audio nobody can hear (measured at 12 unbroken minutes of it).
+        //
+        // A phone is the opposite: the screen goes off constantly, and stopping
+        // playback there would break listening with the handset locked.
+        if (DeviceType.isTv(this)) {
+            registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        }
     }
 
-    /**
-     * Once the display is off nothing can be heard, but a live stream carries on
-     * pulling data regardless — measured at a full 12 minutes of silent download
-     * after the remote's power button. So the screen going off ends playback.
-     */
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action != Intent.ACTION_SCREEN_OFF) return

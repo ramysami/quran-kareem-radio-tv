@@ -35,8 +35,10 @@ class SettingsActivity : AppCompatActivity() {
 
     /** Settings can be left open mid-recitation, so it holds the TV awake too. */
     private val playbackListener: (Boolean) -> Unit = { active ->
-        if (active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (DeviceType.isTv(this)) {
+            if (active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

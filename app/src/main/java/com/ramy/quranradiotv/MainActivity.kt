@@ -99,11 +99,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Holds the display on while there is audio to listen to, and hands the TV
-     * back to its normal sleep timeout the moment there isn't. Without this the
-     * screensaver appears mid-recitation and the TV then drops into standby.
+     * TV only. Holds the display on while there is audio to listen to, and hands
+     * the set back to its normal sleep timeout the moment there isn't: otherwise
+     * the screensaver appears mid-recitation and the box drops into standby.
+     *
+     * On a phone this would be actively wrong — locking the screen and carrying
+     * on listening is exactly what people want, and playback keeps going there
+     * through the foreground service.
      */
     private fun keepScreenAwake(active: Boolean) {
+        if (!DeviceType.isTv(this)) return
         if (active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
@@ -287,10 +292,13 @@ class MainActivity : AppCompatActivity() {
     // ---------------------------------------------------------------- background
 
     private fun applyBackground() {
-        // Default artwork already contains the wordmark; our own title would duplicate it.
-        val showTitle = prefs.backgroundMode != Prefs.BG_DEFAULT
+        // On television the artwork fills the screen and already carries the
+        // wordmark, so our own title would duplicate it. On a phone the artwork
+        // is only a band at the top, so the title always earns its place.
+        val tvLayout = resources.getBoolean(R.bool.is_tv_layout)
+        val showTitle = !tvLayout || prefs.backgroundMode != Prefs.BG_DEFAULT
         binding.titleGroup.visibility = if (showTitle) View.VISIBLE else View.GONE
-        setPanelBias(if (showTitle) 0.5f else 0.68f)
+        if (tvLayout) setPanelBias(if (showTitle) 0.5f else 0.68f)
 
         lifecycleScope.launch {
             when (val result = BackgroundLoader.load(this@MainActivity, prefs)) {
@@ -315,7 +323,7 @@ class MainActivity : AppCompatActivity() {
         else binding.backgroundImage.setImageDrawable(drawable)
         binding.scrim.visibility = View.VISIBLE
         binding.scrim.setBackgroundResource(
-            if (strongScrim) R.drawable.scrim_left_strong else R.drawable.scrim_left
+            if (strongScrim) R.drawable.scrim_strong else R.drawable.scrim_soft
         )
     }
 

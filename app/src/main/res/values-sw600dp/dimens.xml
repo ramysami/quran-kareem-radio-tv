@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tablets: more room, so the artwork and controls both get a little larger. -->
+<resources>
+    <dimen name="overscan_horizontal">40dp</dimen>
+    <dimen name="overscan_vertical">28dp</dimen>
+
+    <dimen name="btn_primary_height">66dp</dimen>
+    <dimen name="btn_secondary_height">56dp</dimen>
+    <dimen name="icon_size">26dp</dimen>
+</resources>

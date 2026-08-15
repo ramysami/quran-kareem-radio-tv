@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Phone and tablet, portrait.
-
-  The artwork is a 16:9 landscape composition, so filling a tall screen with it
-  would crop away either the wordmark on the left or the mosque on the right.
-  Instead it runs as a hero band across the top at its own aspect ratio, fading
-  into the page, with the controls centred below where a thumb reaches.
-
-  View ids match the landscape and television variants so that view binding
-  resolves every one of them as non-null.
+  layoutDirection is pinned to ltr on the root: the artwork is composed with its
+  dark, empty area on the left, so the control panel must stay on the left even
+  when the TV is set to Arabic. Text inside still shapes bidirectionally.
 -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -17,6 +11,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layoutDirection="ltr"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:background="@drawable/bg_gradient">
@@ -28,8 +23,8 @@
         android:scaleType="centerCrop"
         android:contentDescription="@null"
         android:src="@drawable/bg_default"
-        app:layout_constraintDimensionRatio="H,16:9"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -38,48 +33,42 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/scrim_soft"
-        app:layout_constraintTop_toTopOf="@id/backgroundImage"
-        app:layout_constraintBottom_toBottomOf="@id/backgroundImage"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
-
-    <!--
-      Fills the space under the hero and distributes it with weighted spacers:
-      the title sits just below the artwork, the controls fall into the lower
-      half where a thumb reaches, instead of both clumping in the middle of a
-      tall screen.
-    -->
-    <LinearLayout
-        android:id="@+id/panel"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingLeft="@dimen/overscan_horizontal"
-        android:paddingRight="@dimen/overscan_horizontal"
-        android:paddingTop="28dp"
-        android:paddingBottom="@dimen/overscan_vertical"
-        app:layout_constraintTop_toBottomOf="@id/backgroundImage"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintWidth_percent="0.62"
+        app:layout_constraintHorizontal_bias="0" />
 
+    <!-- Left-centre control panel -->
+    <LinearLayout
+        android:id="@+id/panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="start"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_marginLeft="@dimen/overscan_horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.68">
+
+        <!-- Hidden while the default artwork is showing: it already carries the wordmark -->
         <LinearLayout
             android:id="@+id/titleGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center_horizontal">
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <TextView
                 android:id="@+id/stationName"
                 style="@style/Text.Station"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="28sp"
-                android:gravity="center"
                 android:text="@string/station_name" />
 
             <TextView
@@ -88,16 +77,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:gravity="center"
                 android:text="@string/station_subtitle" />
 
             <View
-                android:layout_width="120dp"
+                android:layout_width="180dp"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:background="@drawable/divider_gold" />
         </LinearLayout>
 
+        <!-- Status line -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -132,29 +121,27 @@
             tools:text="Stops in 14:59"
             tools:visibility="visible" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
+        <!-- Primary transport -->
         <LinearLayout
             android:id="@+id/btnPlayPause"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/btn_primary_height"
-            android:minWidth="200dp"
+            android:layout_marginTop="24dp"
+            android:minWidth="196dp"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingLeft="26dp"
-            android:paddingRight="30dp"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:paddingRight="24dp"
             android:background="@drawable/btn_primary"
             android:focusable="true"
+            android:focusableInTouchMode="true"
             android:clickable="true"
             android:nextFocusDown="@+id/btnStop">
 
             <ImageView
                 android:id="@+id/playPauseIcon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_play" />
 
@@ -164,29 +151,31 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="12dp"
                 android:textColor="@color/content_on_button"
-                android:textSize="19sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:text="@string/action_play" />
         </LinearLayout>
 
+        <!-- Secondary row -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:layout_marginTop="14dp">
+            android:layout_marginTop="12dp">
 
             <LinearLayout
                 android:id="@+id/btnStop"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/btn_secondary_height"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:paddingLeft="16dp"
                 android:paddingRight="18dp"
                 android:background="@drawable/btn_secondary"
                 android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:clickable="true"
                 android:nextFocusUp="@id/btnPlayPause"
                 android:nextFocusRight="@+id/btnSleep">
@@ -200,7 +189,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
+                    android:layout_marginLeft="10dp"
                     android:textColor="@color/content_on_button"
                     android:textSize="15sp"
                     android:text="@string/action_stop" />
@@ -210,13 +199,14 @@
                 android:id="@+id/btnSleep"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/btn_secondary_height"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="12dp"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:paddingLeft="16dp"
                 android:paddingRight="18dp"
                 android:background="@drawable/btn_secondary"
                 android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:clickable="true"
                 android:nextFocusUp="@id/btnPlayPause"
                 android:nextFocusLeft="@id/btnStop"
@@ -231,7 +221,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
+                    android:layout_marginLeft="10dp"
                     android:textColor="@color/content_on_button"
                     android:textSize="15sp"
                     android:text="@string/action_sleep_timer" />
@@ -241,13 +231,14 @@
                 android:id="@+id/btnSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/btn_secondary_height"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="12dp"
                 android:orientation="horizontal"
-                android:gravity="center"
+                android:gravity="center_vertical"
                 android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingRight="18dp"
                 android:background="@drawable/btn_secondary"
                 android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:clickable="true"
                 android:nextFocusUp="@id/btnPlayPause"
                 android:nextFocusLeft="@id/btnSleep">
@@ -255,15 +246,18 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size"
                     android:layout_height="@dimen/icon_size"
-                    android:contentDescription="@string/action_settings"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_settings" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:textColor="@color/content_on_button"
+                    android:textSize="15sp"
+                    android:text="@string/action_settings" />
             </LinearLayout>
         </LinearLayout>
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="0.7" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
