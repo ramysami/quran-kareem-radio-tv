@@ -28,8 +28,8 @@
         android:scaleType="centerCrop"
         android:contentDescription="@null"
         android:src="@drawable/bg_default"
-        app:layout_constraintDimensionRatio="H,16:9"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -38,8 +38,8 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/scrim_soft"
-        app:layout_constraintTop_toTopOf="@id/backgroundImage"
-        app:layout_constraintBottom_toBottomOf="@id/backgroundImage"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -59,12 +59,17 @@
         android:clipToPadding="false"
         android:paddingLeft="@dimen/overscan_horizontal"
         android:paddingRight="@dimen/overscan_horizontal"
-        android:paddingTop="28dp"
+        android:paddingTop="@dimen/overscan_vertical"
         android:paddingBottom="@dimen/overscan_vertical"
-        app:layout_constraintTop_toBottomOf="@id/backgroundImage"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <LinearLayout
             android:id="@+id/titleGroup"
@@ -132,15 +137,11 @@
             tools:text="Stops in 14:59"
             tools:visibility="visible" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
         <LinearLayout
             android:id="@+id/btnPlayPause"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/btn_primary_height"
+            android:layout_marginTop="30dp"
             android:minWidth="200dp"
             android:orientation="horizontal"
             android:gravity="center"
@@ -260,10 +261,12 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Slightly heavier than the spacer above, so the block settles a touch
+             above centre rather than looking bottom-weighted on a tall screen. -->
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="0.7" />
+            android:layout_weight="1.15" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Portrait, for user-supplied images that may be bright anywhere. -->
+<!--
+  Portrait, over a user-supplied image. That picture could be bright anywhere, so
+  this stays heavy across the whole frame rather than favouring one edge — the
+  controls have to stay readable over all of them.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
         android:angle="90"
-        android:startColor="#FF061225"
-        android:centerColor="#B3061225"
-        android:endColor="#40061225"
-        android:centerY="0.4"
+        android:startColor="#D9061225"
+        android:centerColor="#A6061225"
+        android:endColor="#8C061225"
+        android:centerY="0.5"
         android:type="linear" />
 </shape>

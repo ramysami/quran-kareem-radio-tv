@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Untinted on purpose. For themed icons the launcher supplies the colour itself,
+  light-on-dark or dark-on-light to match the user's wallpaper and theme, so all
+  this layer provides is the silhouette.
+-->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@mipmap/ic_calligraphy"
+    android:gravity="center" />

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The icon carries its own deep-navy ground, which is what keeps it legible on a
+  light launcher and a dark one alike: it never borrows the wallpaper's colour.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#FF13294F"
+        android:centerColor="#FF0C1E3D"
+        android:endColor="#FF061225"
+        android:type="linear" />
+</shape>

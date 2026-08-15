@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Portrait. The artwork sits in a hero band across the top, so the scrim runs
-  vertically to melt its lower edge into the page rather than cutting a hard
-  line across the picture.
+  Portrait, over the bundled artwork. Weighted towards the bottom, where the
+  lantern and the patterned floor are brightest, and kept light at the top so the
+  gold wordmark in the picture stays clean.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
         android:angle="90"
-        android:startColor="#FF061225"
-        android:centerColor="#73061225"
-        android:endColor="#00061225"
-        android:centerY="0.35"
+        android:startColor="#B3061225"
+        android:centerColor="#4D061225"
+        android:endColor="#1A061225"
+        android:centerY="0.5"
         android:type="linear" />
 </shape>

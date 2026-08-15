@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The calligraphy ships as black on transparent, so it is tinted gold here rather
+  than being stored a second time in another colour.
+
+  Sized to about two thirds of the 108dp adaptive canvas and centred, which keeps
+  it inside the 72dp safe zone every launcher mask respects — circle, squircle or
+  rounded square all crop the corners without touching the glyph.
+-->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@mipmap/ic_calligraphy"
+    android:gravity="center"
+    android:tint="@color/gold_bright" />

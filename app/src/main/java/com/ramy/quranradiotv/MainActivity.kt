@@ -292,13 +292,17 @@ class MainActivity : AppCompatActivity() {
     // ---------------------------------------------------------------- background
 
     private fun applyBackground() {
-        // On television the artwork fills the screen and already carries the
-        // wordmark, so our own title would duplicate it. On a phone the artwork
-        // is only a band at the top, so the title always earns its place.
-        val tvLayout = resources.getBoolean(R.bool.is_tv_layout)
-        val showTitle = !tvLayout || prefs.backgroundMode != Prefs.BG_DEFAULT
+        // Both bundled artworks, portrait and landscape, already carry the
+        // wordmark, so our own title would only duplicate it. It comes back for
+        // the plain gradient and for a user's own picture.
+        //
+        // The bias nudge keeps the landscape panel clear of the artwork's logo.
+        // In portrait the panel fills its constraints and distributes itself with
+        // weighted spacers instead, leaving no slack for a bias to act on, so
+        // this call is simply inert there.
+        val showTitle = prefs.backgroundMode != Prefs.BG_DEFAULT
         binding.titleGroup.visibility = if (showTitle) View.VISIBLE else View.GONE
-        if (tvLayout) setPanelBias(if (showTitle) 0.5f else 0.68f)
+        setPanelBias(if (showTitle) 0.5f else 0.68f)
 
         lifecycleScope.launch {
             when (val result = BackgroundLoader.load(this@MainActivity, prefs)) {

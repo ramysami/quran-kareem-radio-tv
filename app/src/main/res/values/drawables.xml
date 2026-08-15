@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  bg_default is an alias rather than a file, so the two artworks are each stored
+  once and the right one is chosen by configuration:
+
+    values/          landscape artwork — phones in landscape, and television
+    values-port/     portrait artwork  — phones held upright
+    values-sw600dp/  landscape artwork — tablets, in either orientation
+
+  smallestWidth outranks orientation in resource selection, so the sw600dp entry
+  wins on a tablet even when it is upright. That is deliberate: the landscape
+  composition suits a tablet's roomier screen.
+-->
+<resources>
+    <item name="bg_default" type="drawable">@drawable/bg_artwork_landscape</item>
+</resources>
