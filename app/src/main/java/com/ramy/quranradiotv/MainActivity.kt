@@ -12,15 +12,10 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -52,7 +47,8 @@ class MainActivity : AppCompatActivity() {
 
     private val sleepListener: (Long) -> Unit = { remaining -> renderSleepTimer(remaining) }
 
-    private val playbackListener: (Boolean) -> Unit = { active -> keepScreenAwake(active) }
+    private val playbackListener: (PlaybackStatus.Phase) -> Unit =
+        { phase -> keepScreenAwake(phase.isActive) }
 
     // ---------------------------------------------------------------- lifecycle
 
@@ -65,7 +61,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnPlayPause.setOnClickListener { togglePlayPause() }
         binding.btnStop.setOnClickListener { stopPlayback() }
-        binding.btnSleep.setOnClickListener { showSleepTimerDialog() }
+        binding.btnSleep.setOnClickListener { SleepTimerDialogs.show(this) }
         binding.btnSettings.setOnClickListener { openSettings() }
 
         addFocusScale(binding.btnPlayPause)
@@ -149,6 +145,7 @@ class MainActivity : AppCompatActivity() {
     private fun startPlayback() {
         val c = controller ?: return
         if (!isNetworkAvailable()) {
+            setStatusVisible(true)
             binding.statusText.text = getString(R.string.status_no_network)
             tintDot(R.color.error_red)
             return
@@ -203,6 +200,11 @@ class MainActivity : AppCompatActivity() {
         val buffering = c?.playbackState == Player.STATE_BUFFERING
         val error = c?.playerError != null
 
+        // Every state below says something worth reading except "Ready", which
+        // the Play button already says. Hidden rather than collapsed so the
+        // panel doesn't jump the moment playback starts.
+        setStatusVisible(true)
+
         binding.playPauseIcon.setImageResource(
             if (playing || (buffering && c?.playWhenReady == true)) R.drawable.ic_pause
             else R.drawable.ic_play
@@ -236,11 +238,16 @@ class MainActivity : AppCompatActivity() {
                 stopDotPulse()
             }
             else -> {
-                binding.statusText.setText(R.string.status_idle)
-                tintDot(R.color.text_muted)
+                setStatusVisible(false)
                 stopDotPulse()
             }
         }
+    }
+
+    private fun setStatusVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.INVISIBLE
+        binding.statusDot.visibility = visibility
+        binding.statusText.visibility = visibility
     }
 
     private fun renderSleepTimer(remaining: Long) {
@@ -339,81 +346,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------------------------------------------------------------- sleep timer
-
-    private fun showSleepTimerDialog() {
-        val labels = mutableListOf<String>()
-        val actions = mutableListOf<() -> Unit>()
-
-        if (SleepTimer.isActive) {
-            labels += getString(R.string.sleep_off)
-            actions += {
-                SleepTimer.cancel()
-                toast(getString(R.string.sleep_cancelled))
-            }
-        }
-
-        PRESET_MINUTES.forEach { (labelRes, minutes) ->
-            labels += getString(labelRes)
-            actions += { setSleepTimer(minutes) }
-        }
-
-        labels += getString(R.string.sleep_custom)
-        actions += { showCustomSleepDialog() }
-
-        AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
-            .setTitle(R.string.sleep_dialog_title)
-            .setItems(labels.toTypedArray()) { _, which -> actions[which].invoke() }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .show()
-    }
-
-    private fun showCustomSleepDialog() {
-        val input = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_NUMBER
-            imeOptions = EditorInfo.IME_ACTION_DONE
-            hint = getString(R.string.sleep_custom_hint)
-            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_primary))
-            setHintTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_muted))
-        }
-        val container = FrameLayout(this).apply {
-            val pad = (24 * resources.displayMetrics.density).toInt()
-            setPadding(pad, pad / 2, pad, 0)
-            addView(input)
-        }
-
-        fun commit() {
-            val minutes = input.text.toString().trim().toIntOrNull()
-            if (minutes == null || minutes !in 1..600) toast(getString(R.string.sleep_invalid))
-            else setSleepTimer(minutes)
-        }
-
-        val dialog = AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
-            .setTitle(R.string.sleep_custom_title)
-            .setView(container)
-            .setPositiveButton(R.string.dialog_ok) { _, _ -> commit() }
-            .setNegativeButton(R.string.dialog_cancel, null)
-            .create()
-
-        // The TV keypad swallows D-pad focus, so its own "done" key confirms
-        // rather than making the user back out and walk over to OK.
-        input.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                commit()
-                dialog.dismiss()
-                true
-            } else false
-        }
-
-        dialog.show()
-        input.requestFocus()
-    }
-
-    private fun setSleepTimer(minutes: Int) {
-        SleepTimer.start(minutes)
-        toast(getString(R.string.sleep_set, getString(R.string.sleep_minutes_value, minutes)))
-    }
-
     // ---------------------------------------------------------------- remote keys
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -444,10 +376,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, SettingsActivity::class.java))
     }
 
-    private fun toast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
     private fun isNetworkAvailable(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
         @Suppress("DEPRECATION")
@@ -461,14 +389,5 @@ class MainActivity : AppCompatActivity() {
         if (!granted) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
-    }
-
-    companion object {
-        private val PRESET_MINUTES = listOf(
-            R.string.sleep_5 to 5,
-            R.string.sleep_15 to 15,
-            R.string.sleep_30 to 30,
-            R.string.sleep_60 to 60,
-        )
     }
 }

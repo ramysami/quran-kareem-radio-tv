@@ -15,6 +15,23 @@
         <item name="android:windowBackground">@drawable/bg_dialog</item>
     </style>
 
+    <!--
+        No window of its own: SleepTimerActivity exists only to put the sleep
+        dialog on screen, so the activity behind it must not be visible at all.
+        The dialog does its own dimming.
+    -->
+    <style name="Theme.QuranRadio.Invisible" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:colorAccent">@color/gold</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+    </style>
+
     <!-- Big, clear text — TVs are read from across the room -->
     <style name="Text.Station" parent="">
         <item name="android:textColor">@color/gold_bright</item>

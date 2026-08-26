@@ -1,10 +1,16 @@
 package com.ramy.quranradiotv
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -15,6 +21,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
@@ -103,6 +110,85 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
+    /**
+     * The home-screen widget's transport buttons land here.
+     *
+     * Everything unrecognised is handed straight to Media3, because this is also
+     * where `ACTION_MEDIA_BUTTON` arrives — the play command a car head unit
+     * sends on connect, which is what revives the radio after the process has
+     * been killed.
+     */
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_PLAY -> {
+                claimForeground()
+                startRadio()
+            }
+            ACTION_PAUSE -> player.pause()
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    /**
+     * startForegroundService() is a promise to call startForeground() within
+     * five seconds, and the system kills the app for breaking it.
+     *
+     * Media3 posts its notification only once playback is genuinely under way,
+     * and a live stream on a slow connection takes longer than that to buffer —
+     * so claim the foreground up front with a placeholder. It carries Media3's
+     * own channel and notification id, so its real notification replaces this
+     * one rather than sitting beside it.
+     */
+    private fun claimForeground() {
+        val channelId = DefaultMediaNotificationProvider.DEFAULT_CHANNEL_ID
+
+        if (Build.VERSION.SDK_INT >= 26) {
+            val manager = getSystemService(NotificationManager::class.java)
+            if (manager != null && manager.getNotificationChannel(channelId) == null) {
+                manager.createNotificationChannel(
+                    NotificationChannel(
+                        channelId,
+                        getString(DefaultMediaNotificationProvider.DEFAULT_CHANNEL_NAME_RESOURCE_ID),
+                        NotificationManager.IMPORTANCE_LOW
+                    )
+                )
+            }
+        }
+
+        val placeholder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_play)
+            .setContentTitle(getString(R.string.station_name))
+            .setContentText(getString(R.string.status_connecting))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+        runCatching {
+            ServiceCompat.startForeground(
+                this,
+                DefaultMediaNotificationProvider.DEFAULT_NOTIFICATION_ID,
+                placeholder,
+                if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0
+            )
+        }
+    }
+
+    /**
+     * Starts the stream from cold, reprepared if the player has nothing loaded.
+     * Playing right away is also what settles the foreground-service obligation:
+     * Media3 promotes the service the moment `playWhenReady` goes true.
+     */
+    private fun startRadio() {
+        val needsPrepare = player.mediaItemCount == 0 ||
+            player.playbackState == Player.STATE_IDLE ||
+            player.playbackState == Player.STATE_ENDED
+        if (needsPrepare) {
+            player.setMediaItem(buildMediaItem())
+            player.prepare()
+        }
+        player.play()
+    }
+
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -115,9 +201,12 @@ class PlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         runCatching { unregisterReceiver(screenOffReceiver) }
-        PlaybackStatus.set(false)
+        PlaybackStatus.set(PlaybackStatus.Phase.IDLE)
+        // The timer itself is deliberately left armed: it outlives the service
+        // now, so a timer set from the widget still applies when the radio is
+        // started again. Only the callback goes, since there is no longer a
+        // player for it to stop.
         SleepTimer.onExpire = null
-        SleepTimer.cancel()
         mediaSession?.run {
             player.release()
             release()
@@ -129,12 +218,18 @@ class PlaybackService : MediaSessionService() {
     private inner class PlayerListener : Player.Listener {
 
         override fun onEvents(player: Player, events: Player.Events) {
-            // Buffering with intent to play counts, so a mid-listen reconnect
-            // doesn't hand the TV back to the screensaver.
+            // Buffering with intent to play reports as CONNECTING rather than
+            // idle, so a mid-listen reconnect doesn't hand the TV back to the
+            // screensaver — and so the widget says "Connecting…" instead of
+            // looking like nothing happened.
             PlaybackStatus.set(
-                player.playWhenReady &&
-                    player.playbackState != Player.STATE_IDLE &&
-                    player.playbackState != Player.STATE_ENDED
+                when {
+                    player.playerError != null -> PlaybackStatus.Phase.ERROR
+                    !player.playWhenReady && player.mediaItemCount > 0 -> PlaybackStatus.Phase.PAUSED
+                    player.playbackState == Player.STATE_BUFFERING -> PlaybackStatus.Phase.CONNECTING
+                    player.playbackState == Player.STATE_READY -> PlaybackStatus.Phase.PLAYING
+                    else -> PlaybackStatus.Phase.IDLE
+                }
             )
         }
 
@@ -212,6 +307,9 @@ class PlaybackService : MediaSessionService() {
 
     companion object {
         const val MEDIA_ID = "quran_kareem_radio_live"
+
+        const val ACTION_PLAY = "com.ramy.quranradiotv.action.PLAY"
+        const val ACTION_PAUSE = "com.ramy.quranradiotv.action.PAUSE"
         private const val MAX_RETRIES = 5
         private const val USER_AGENT = "QuranKareemRadioTV/1.0 (Android TV)"
     }

@@ -17,6 +17,7 @@
         android:required="false" />
 
     <application
+        android:name=".QuranRadioApp"
         android:allowBackup="true"
         android:banner="@drawable/banner"
         android:icon="@mipmap/ic_launcher"
@@ -45,6 +46,21 @@
             </intent-filter>
         </activity>
 
+        <!--
+            Host for the sleep-timer dialog the widget opens. Windowless, with
+            its own task affinity, so it floats over the home screen without
+            ever pulling the player up behind it or landing in Recents.
+        -->
+        <activity
+            android:name=".SleepTimerActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|uiMode"
+            android:theme="@style/Theme.QuranRadio.Invisible" />
+
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
@@ -60,6 +76,48 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <!--
+            Lets a media button reach the app after its process is gone — which
+            is how the radio comes back when the car's head unit asks the phone
+            to play on connect. PlaybackService.onPlaybackResumption supplies
+            the stream.
+        -->
+        <receiver
+            android:name="androidx.media3.session.MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".SleepAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".RadioWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".RadioWidgetCompactProvider"
+            android:exported="false"
+            android:label="@string/widget_label_compact">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_compact" />
+        </receiver>
 
     </application>
 </manifest>

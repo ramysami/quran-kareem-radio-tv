@@ -37,6 +37,13 @@
     <string name="sleep_cancelled">Sleep timer turned off</string>
     <string name="sleep_minutes_value">%1$d minutes</string>
     <string name="sleep_invalid">Enter a number between 1 and 600</string>
+    <!-- Minutes left, on the widget, where there is no room for anything longer -->
+    <string name="sleep_minutes_short">%1$dm</string>
+
+    <!-- Home-screen widget -->
+    <string name="widget_label">Quran Kareem Radio</string>
+    <string name="widget_label_compact">Quran Kareem Radio (compact)</string>
+    <string name="widget_description">Play the radio and set a sleep timer</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

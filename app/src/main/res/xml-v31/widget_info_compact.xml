@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/widget_radio_compact"
+    android:maxResizeHeight="80dp"
+    android:maxResizeWidth="360dp"
+    android:minHeight="50dp"
+    android:minResizeHeight="50dp"
+    android:minResizeWidth="140dp"
+    android:minWidth="180dp"
+    android:previewLayout="@layout/widget_radio_compact"
+    android:resizeMode="horizontal"
+    android:targetCellHeight="1"
+    android:targetCellWidth="4"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

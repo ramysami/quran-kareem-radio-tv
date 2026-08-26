@@ -37,6 +37,12 @@
     <string name="sleep_cancelled">تم إيقاف مؤقت النوم</string>
     <string name="sleep_minutes_value">%1$d دقيقة</string>
     <string name="sleep_invalid">أدخل رقمًا بين ١ و ٦٠٠</string>
+    <string name="sleep_minutes_short">%1$d د</string>
+
+    <!-- أداة الشاشة الرئيسية -->
+    <string name="widget_label">إذاعة القرآن الكريم</string>
+    <string name="widget_label_compact">إذاعة القرآن الكريم (مصغّرة)</string>
+    <string name="widget_description">شغّل الإذاعة واضبط مؤقت النوم</string>
 
     <!-- الإعدادات -->
     <string name="settings_title">الإعدادات</string>

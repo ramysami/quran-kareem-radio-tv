@@ -42,6 +42,20 @@ class Prefs(context: Context) {
             .apply()
     }
 
+    // ---- Sleep timer ------------------------------------------------------
+
+    /**
+     * Wall-clock instant at which playback should stop, or 0 when no timer is set.
+     *
+     * Persisted so the home-screen widget can render the timer from a cold process,
+     * and so an armed timer is not silently forgotten when the process goes away.
+     * Wall clock rather than elapsed-realtime on purpose: it is the only one of the
+     * two that still means something after a reboot.
+     */
+    var sleepDeadline: Long
+        get() = sp.getLong(KEY_SLEEP_DEADLINE, 0L)
+        set(value) = sp.edit().putLong(KEY_SLEEP_DEADLINE, value).apply()
+
     // ---- Everything -------------------------------------------------------
 
     fun resetAll() = sp.edit().clear().apply()
@@ -52,6 +66,7 @@ class Prefs(context: Context) {
         private const val KEY_STREAM_URL = "stream_url"
         private const val KEY_BG_MODE = "bg_mode"
         private const val KEY_BG_URI = "bg_uri"
+        private const val KEY_SLEEP_DEADLINE = "sleep_deadline"
 
         const val DEFAULT_STREAM_URL = "https://stream.radiojar.com/8s5u5tpdtwzuv"
 
