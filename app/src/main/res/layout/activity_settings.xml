@@ -115,6 +115,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="2dp"
+                android:text="@string/settings_section_notification" />
+
+            <include
+                android:id="@+id/rowSleepOverlay"
+                layout="@layout/item_setting" />
+
+            <TextView
+                style="@style/Text.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="2dp"
                 android:text="@string/settings_section_reset" />
 
             <include

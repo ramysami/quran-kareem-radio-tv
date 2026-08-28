@@ -8,6 +8,17 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+        Lets the sleep-timer button in the notification open the app's preset
+        dialog. Android refuses to start an activity for a media-control button:
+        the press arrives as a session callback rather than as a PendingIntent
+        sent by the launcher, which is what earns the widget's timer button the
+        same start. Holding this permission is one of the few exemptions from
+        that rule. It is asked for, never assumed, and the button is the only
+        thing in the app that uses it.
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- TV devices have no touchscreen and no telephony -->
     <uses-feature
         android:name="android.hardware.touchscreen"

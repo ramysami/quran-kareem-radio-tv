@@ -1,5 +1,6 @@
 package com.ramy.quranradiotv
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -35,6 +36,30 @@ object BackgroundLoader {
             else -> Result.UseDefault
         }
     }
+
+    /**
+     * The same choice as a URI, for the media session's artwork.
+     *
+     * The notification in the shade is drawn by the system, from a bitmap it
+     * loads itself, so the session hands over a URI instead of an image — which
+     * suits a custom background too, whether it is a content:// pick, a file or
+     * a URL. Null means the user asked for no picture at all, and the card in
+     * the shade goes without one exactly as the app does.
+     *
+     * The bundled artwork is named here as the landscape painting rather than
+     * through the bg_default alias, deliberately: the alias would hand a phone
+     * the portrait one, and the card is a wide, shallow strip that would show
+     * little more than a vertical slice through the middle of it.
+     */
+    fun artworkUri(context: Context, prefs: Prefs): Uri? = when (prefs.backgroundMode) {
+        Prefs.BG_NONE -> null
+        Prefs.BG_CUSTOM -> prefs.customBackgroundUri?.let { Uri.parse(it) } ?: defaultArtworkUri(context)
+        else -> defaultArtworkUri(context)
+    }
+
+    private fun defaultArtworkUri(context: Context): Uri = Uri.parse(
+        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.drawable.bg_artwork_landscape}"
+    )
 
     private fun loadCustom(context: Context, uriString: String?): Result {
         if (uriString.isNullOrBlank()) return Result.UseDefault

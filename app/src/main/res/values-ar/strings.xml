@@ -64,11 +64,21 @@
     <string name="settings_bg_custom_summary">اختر ملفًا من هذا الجهاز أو أدخل رابط صورة</string>
     <string name="settings_bg_reset">استعادة الخلفية الافتراضية</string>
 
+    <string name="settings_section_notification">الإشعار</string>
+    <string name="settings_overlay_title">مؤقت النوم من الإشعار</string>
+    <string name="settings_overlay_on">مسموح — تفتح القائمة فوق ما يظهر على الشاشة</string>
+    <string name="settings_overlay_off">يحتاج إذن «العرض فوق التطبيقات الأخرى» — اضغط للسماح</string>
+    <string name="settings_overlay_unavailable">لا تتوفر شاشة هذا الإذن على هذا الجهاز</string>
+
     <string name="settings_section_reset">إعادة الضبط</string>
     <string name="settings_reset_all">استعادة جميع الإعدادات الافتراضية</string>
     <string name="settings_reset_all_summary">يعود رابط البث والخلفية إلى القيم الأصلية</string>
     <string name="settings_reset_all_confirm">هل تريد استعادة جميع الإعدادات الافتراضية؟</string>
     <string name="settings_reset_done">تمت استعادة جميع الإعدادات الافتراضية</string>
+
+    <string name="setup_channel_name">الإعداد</string>
+    <string name="overlay_prompt_title">اسمح بفتح مؤقت النوم من هنا</string>
+    <string name="overlay_prompt_text">لا يسمح أندرويد لزر المؤقت بفتح قائمته إلا إذا كان مسموحًا لإذاعة القرآن الكريم بالعرض فوق التطبيقات الأخرى. اضغط للسماح — لا يُعرض أي شيء فوق أي تطبيق.</string>
 
     <string name="custom_bg_dialog_title">اختر صورة</string>
     <string name="custom_bg_browse">تصفّح ملفات هذا الجهاز</string>

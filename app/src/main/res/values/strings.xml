@@ -65,11 +65,21 @@
     <string name="settings_bg_custom_summary">Pick a file on this device or enter an image URL</string>
     <string name="settings_bg_reset">Restore default background</string>
 
+    <string name="settings_section_notification">Notification</string>
+    <string name="settings_overlay_title">Sleep timer from the notification</string>
+    <string name="settings_overlay_on">Allowed — the timer opens over whatever is on screen</string>
+    <string name="settings_overlay_off">Needs "Display over other apps" — tap to grant</string>
+    <string name="settings_overlay_unavailable">This device has no screen for that permission</string>
+
     <string name="settings_section_reset">Reset</string>
     <string name="settings_reset_all">Restore all default settings</string>
     <string name="settings_reset_all_summary">Stream URL and background go back to factory values</string>
     <string name="settings_reset_all_confirm">Restore every setting to its default?</string>
     <string name="settings_reset_done">All settings restored to defaults</string>
+
+    <string name="setup_channel_name">Setup</string>
+    <string name="overlay_prompt_title">Let the sleep timer open from here</string>
+    <string name="overlay_prompt_text">Android only lets the timer button open its menu if Quran Kareem Radio may display over other apps. Tap to allow it — nothing is ever drawn over anything else.</string>
 
     <string name="custom_bg_dialog_title">Choose an Image</string>
     <string name="custom_bg_browse">Browse files on this device</string>

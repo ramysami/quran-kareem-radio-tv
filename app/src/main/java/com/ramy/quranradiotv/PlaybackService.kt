@@ -1,5 +1,6 @@
 package com.ramy.quranradiotv
 
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,8 +11,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -26,9 +29,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -42,6 +49,9 @@ class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
+
+    /** The player as the session publishes it. See [LivePlayer]. */
+    private lateinit var livePlayer: LivePlayer
     private lateinit var prefs: Prefs
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -84,9 +94,13 @@ class PlaybackService : MediaSessionService() {
 
         player.addListener(PlayerListener())
 
-        val session = MediaSession.Builder(this, player)
+        livePlayer = LivePlayer(player)
+        setMediaNotificationProvider(LiveNotificationProvider())
+
+        val session = MediaSession.Builder(this, livePlayer)
             .setCallback(SessionCallback())
             .setSessionActivity(contentIntent())
+            .setCustomLayout(customLayout())
             .build()
         mediaSession = session
 
@@ -120,10 +134,7 @@ class PlaybackService : MediaSessionService() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action != Intent.ACTION_SCREEN_OFF) return
             if (player.mediaItemCount == 0) return
-
-            player.stop()
-            player.clearMediaItems()
-            SleepTimer.cancel()
+            stopRadio()
         }
     }
 
@@ -239,6 +250,141 @@ class PlaybackService : MediaSessionService() {
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
+
+    // ---------------------------------------------------------------- controls
+
+    /**
+     * The two controls Media3 has no notion of, in the order they are shown.
+     *
+     * They have to be custom actions rather than ordinary transport commands
+     * because of how Android 13 and later draw the panel in the shade: it lays
+     * out five fixed slots of its own — play/pause, previous, next, and two for
+     * whatever else the session offers — and ignores the buttons in our
+     * notification entirely. Stop is not one of the slots it knows, so the only
+     * way to put stop and a sleep timer in front of the user is to offer them
+     * as the session's own custom actions and let them fill the two free slots
+     * that dropping previous and next leaves behind.
+     */
+    private fun customLayout(): List<CommandButton> = listOf(
+        commandButton(COMMAND_STOP, R.drawable.ic_stop, R.string.action_stop, slot = 1),
+        commandButton(COMMAND_SLEEP_TIMER, R.drawable.ic_timer, R.string.action_sleep_timer, slot = 2),
+    )
+
+    private fun commandButton(
+        action: String,
+        @DrawableRes iconRes: Int,
+        @StringRes nameRes: Int,
+        slot: Int
+    ): CommandButton = CommandButton.Builder()
+        .setSessionCommand(SessionCommand(action, Bundle.EMPTY))
+        .setIconResId(iconRes)
+        .setDisplayName(getString(nameRes))
+        .setEnabled(true)
+        .setExtras(compactSlot(slot))
+        .build()
+
+    /** Which of the three slots the collapsed notification draws a button in. */
+    private fun compactSlot(index: Int): Bundle = Bundle().apply {
+        putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX, index)
+    }
+
+    /**
+     * The notification Media3 draws for Android 12 and below, and for the
+     * television. From 13 the system builds its own from the session and this
+     * goes unseen, so the two have to be arranged separately to arrive at the
+     * same three controls.
+     *
+     * Only the compact view needs saying: left alone, the base class reserves
+     * its three collapsed slots for previous, play/pause and next, and a stream
+     * with no previous or next would collapse to a single button with stop and
+     * the timer hidden until the user expanded the notification.
+     */
+    private inner class LiveNotificationProvider :
+        DefaultMediaNotificationProvider(this@PlaybackService) {
+
+        override fun getMediaButtons(
+            session: MediaSession,
+            playerCommands: Player.Commands,
+            customLayout: ImmutableList<CommandButton>,
+            showPauseButton: Boolean
+        ): ImmutableList<CommandButton> {
+            val buttons = ImmutableList.Builder<CommandButton>()
+            if (playerCommands.contains(Player.COMMAND_PLAY_PAUSE)) {
+                buttons.add(
+                    commandButton(
+                        Player.COMMAND_PLAY_PAUSE,
+                        if (showPauseButton) R.drawable.ic_pause else R.drawable.ic_play,
+                        if (showPauseButton) R.string.action_pause else R.string.action_play
+                    )
+                )
+            }
+            // Stop and the sleep timer, already carrying slots 1 and 2.
+            return buttons.addAll(customLayout).build()
+        }
+
+        private fun commandButton(
+            playerCommand: Int,
+            @DrawableRes iconRes: Int,
+            @StringRes nameRes: Int
+        ): CommandButton = CommandButton.Builder()
+            .setPlayerCommand(playerCommand)
+            .setIconResId(iconRes)
+            .setDisplayName(getString(nameRes))
+            .setEnabled(true)
+            .setExtras(compactSlot(0))
+            .build()
+    }
+
+    /**
+     * Stop, as the app's own Stop button means it: the stream is dropped rather
+     * than held, and a sleep timer counting down towards a radio that is no
+     * longer playing is cancelled with it.
+     */
+    private fun stopRadio() {
+        player.stop()
+        player.clearMediaItems()
+        SleepTimer.cancel()
+    }
+
+    /**
+     * The sleep-timer button opens the same preset dialog the widget does, over
+     * whatever the user was looking at, without the app coming up behind it.
+     *
+     * Starting it from here is a background activity launch, which Android
+     * allows only under [OverlayPermission] — or while the app happens to have a
+     * screen of its own in front, which is checked so that a user who never
+     * granted anything still gets the dialog in the case where it can work.
+     * Without either, there is nothing to show and no way to say so on screen,
+     * so the request for the permission goes to the shade instead.
+     */
+    private fun openSleepTimer() {
+        if (!OverlayPermission.isGranted(this) && !isAppInForeground()) {
+            OverlayPermission.prompt(this)
+            return
+        }
+        OverlayPermission.dismissPrompt(this)
+        val intent = Intent(this, SleepTimerActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        runCatching { startActivity(intent) }
+    }
+
+    /**
+     * Whether one of the app's own screens is in front of the user.
+     *
+     * A foreground service on its own reports IMPORTANCE_FOREGROUND_SERVICE,
+     * which ranks below this, so the radio merely playing is not mistaken for
+     * the app being open.
+     */
+    private fun isAppInForeground(): Boolean {
+        val manager = getSystemService(ActivityManager::class.java) ?: return false
+        val mine = android.os.Process.myPid()
+        return runCatching {
+            manager.runningAppProcesses?.any {
+                it.pid == mine &&
+                    it.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+            } == true
+        }.getOrDefault(false)
+    }
 
     // ---------------------------------------------------------------- idle shutdown
 
@@ -366,6 +512,50 @@ class PlaybackService : MediaSessionService() {
     private inner class SessionCallback : MediaSession.Callback {
 
         /**
+         * Grants every controller the two custom actions, and withholds the
+         * seek and skip commands from all of them.
+         *
+         * The withholding is what the system's media panel reads: it builds its
+         * buttons from the commands the session advertises, so a stream that
+         * cannot be skipped through is a stream drawn without skip buttons.
+         * [LivePlayer] says the same thing from the player's side, and both are
+         * needed — one is what the notification is built from, the other is
+         * what each connecting controller is granted.
+         */
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult =
+            MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailablePlayerCommands(
+                    MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                        .removeAll(*LivePlayer.SEEK_COMMANDS)
+                        .build()
+                )
+                .setAvailableSessionCommands(
+                    MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                        .add(SessionCommand(COMMAND_STOP, Bundle.EMPTY))
+                        .add(SessionCommand(COMMAND_SLEEP_TIMER, Bundle.EMPTY))
+                        .build()
+                )
+                .build()
+
+        /** Where the stop and sleep-timer buttons in the shade arrive. */
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            val result = when (customCommand.customAction) {
+                COMMAND_STOP -> { stopRadio(); SessionResult.RESULT_SUCCESS }
+                COMMAND_SLEEP_TIMER -> { openSleepTimer(); SessionResult.RESULT_SUCCESS }
+                else -> SessionResult.RESULT_ERROR_NOT_SUPPORTED
+            }
+            return Futures.immediateFuture(SessionResult(result))
+        }
+
+        /**
          * A bare "play" from the remote or the system UI arrives with no media
          * item after a stop — hand back the configured radio stream.
          */
@@ -410,6 +600,11 @@ class PlaybackService : MediaSessionService() {
             MediaMetadata.Builder()
                 .setTitle(getString(R.string.station_name))
                 .setArtist(getString(R.string.station_subtitle))
+                // Dresses the card in the shade in the same picture the app
+                // opens on, and it is the picture the system draws the card's
+                // own colours from. A URI rather than a bitmap because the
+                // system loads and scales it in its own time.
+                .setArtworkUri(BackgroundLoader.artworkUri(this@PlaybackService, prefs))
                 .setIsBrowsable(false)
                 .setIsPlayable(true)
                 .build()
@@ -421,6 +616,10 @@ class PlaybackService : MediaSessionService() {
 
         const val ACTION_PLAY = "com.ramy.quranradiotv.action.PLAY"
         const val ACTION_PAUSE = "com.ramy.quranradiotv.action.PAUSE"
+
+        /** Custom session commands, for the two buttons Media3 has no name for. */
+        private const val COMMAND_STOP = "com.ramy.quranradiotv.command.STOP"
+        private const val COMMAND_SLEEP_TIMER = "com.ramy.quranradiotv.command.SLEEP_TIMER"
         private const val MAX_RETRIES = 5
         private const val USER_AGENT = "QuranKareemRadioTV/1.0 (Android TV)"
 

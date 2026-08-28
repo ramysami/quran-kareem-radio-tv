@@ -57,6 +57,13 @@ class SettingsActivity : AppCompatActivity() {
         PlaybackStatus.addListener(playbackListener)
     }
 
+    /** The overlay permission is granted on a system screen, so re-read it here. */
+    override fun onResume() {
+        super.onResume()
+        render()
+        if (OverlayPermission.isGranted(this)) OverlayPermission.dismissPrompt(this)
+    }
+
     override fun onStop() {
         PlaybackStatus.removeListener(playbackListener)
         super.onStop()
@@ -92,12 +99,16 @@ class SettingsActivity : AppCompatActivity() {
             toast(getString(R.string.saved))
         }
 
+        // Absent from the television layout: a set has no shade to press the
+        // timer button in, and generally no screen for the permission either.
+        binding.rowSleepOverlay?.root?.setOnClickListener { openOverlaySettings() }
+
         binding.rowResetAll.root.setOnClickListener { confirmResetAll() }
 
-        listOf(
+        listOfNotNull(
             binding.rowStreamEdit, binding.rowStreamReset,
             binding.rowBgDefault, binding.rowBgNone, binding.rowBgCustom, binding.rowBgReset,
-            binding.rowResetAll
+            binding.rowSleepOverlay, binding.rowResetAll
         ).forEach { row ->
             row.root.setOnFocusChangeListener { v, hasFocus ->
                 v.animate()
@@ -149,6 +160,19 @@ class SettingsActivity : AppCompatActivity() {
             title = getString(R.string.settings_bg_reset)
         )
 
+        binding.rowSleepOverlay?.let { row ->
+            val granted = OverlayPermission.isGranted(this)
+            bindRow(
+                row,
+                title = getString(R.string.settings_overlay_title),
+                summary = getString(
+                    if (granted) R.string.settings_overlay_on
+                    else R.string.settings_overlay_off
+                ),
+                checked = granted
+            )
+        }
+
         bindRow(
             binding.rowResetAll,
             title = getString(R.string.settings_reset_all),
@@ -156,6 +180,19 @@ class SettingsActivity : AppCompatActivity() {
         )
 
         applyBackgroundPreview()
+    }
+
+    /**
+     * Hands off to the system's own permission screen. Televisions generally
+     * have none, and there is no shade there to press the timer button in, so a
+     * missing screen is stated plainly rather than treated as a failure.
+     */
+    private fun openOverlaySettings() {
+        try {
+            startActivity(OverlayPermission.settingsIntent(this))
+        } catch (e: ActivityNotFoundException) {
+            toast(getString(R.string.settings_overlay_unavailable))
+        }
     }
 
     private fun bindRow(
