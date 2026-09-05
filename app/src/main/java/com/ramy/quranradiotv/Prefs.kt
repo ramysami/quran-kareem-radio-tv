@@ -56,6 +56,36 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_SLEEP_DEADLINE, 0L)
         set(value) = sp.edit().putLong(KEY_SLEEP_DEADLINE, value).apply()
 
+    // ---- Surah recognition ------------------------------------------------
+
+    /**
+     * Whether the user has asked for the Surah and Ayah being recited to be
+     * identified. Off by default: it needs a large model downloaded first, and
+     * it costs a processor core while it listens.
+     */
+    var recognitionEnabled: Boolean
+        get() = sp.getBoolean(KEY_RECOGNITION_ENABLED, false)
+        set(value) = sp.edit().putBoolean(KEY_RECOGNITION_ENABLED, value).apply()
+
+    /** One of [SOURCE_RADIO], [SOURCE_MIC]: where the recogniser listens. */
+    var recognitionSource: String
+        get() = sp.getString(KEY_RECOGNITION_SOURCE, SOURCE_RADIO) ?: SOURCE_RADIO
+        set(value) = sp.edit().putString(KEY_RECOGNITION_SOURCE, value).apply()
+
+    /** How long an identified Surah stays on screen after it was last heard. */
+    var recognitionHoldMillis: Long
+        get() = sp.getLong(KEY_RECOGNITION_HOLD, DEFAULT_RECOGNITION_HOLD_MS)
+        set(value) = sp.edit().putLong(KEY_RECOGNITION_HOLD, value).apply()
+
+    /**
+     * Ids of the model downloads handed to the system's DownloadManager, comma
+     * separated; empty when none are running. Kept so downloads that finished
+     * while the app was gone are still picked up and installed.
+     */
+    var modelDownloadIds: String
+        get() = sp.getString(KEY_MODEL_DOWNLOAD_IDS, "") ?: ""
+        set(value) = sp.edit().putString(KEY_MODEL_DOWNLOAD_IDS, value).apply()
+
     // ---- Everything -------------------------------------------------------
 
     fun resetAll() = sp.edit().clear().apply()
@@ -67,11 +97,21 @@ class Prefs(context: Context) {
         private const val KEY_BG_MODE = "bg_mode"
         private const val KEY_BG_URI = "bg_uri"
         private const val KEY_SLEEP_DEADLINE = "sleep_deadline"
+        private const val KEY_RECOGNITION_ENABLED = "recognition_enabled"
+        private const val KEY_RECOGNITION_SOURCE = "recognition_source"
+        private const val KEY_RECOGNITION_HOLD = "recognition_hold_ms"
+        private const val KEY_MODEL_DOWNLOAD_IDS = "model_download_ids"
 
-        const val DEFAULT_STREAM_URL = "https://stream.radiojar.com/8s5u5tpdtwzuv"
+        const val DEFAULT_STREAM_URL =
+            "https://service.webvideocore.net/CL1olYogIrDWvwqiIKK7eCxOS4PStqG9DuEjAr2ZjZQtvS3d4y9r0cvRhvS17SGN/a_7a4vuubc6mo8.m3u8"
 
         const val BG_DEFAULT = "default"
         const val BG_NONE = "none"
         const val BG_CUSTOM = "custom"
+
+        const val SOURCE_RADIO = "radio"
+        const val SOURCE_MIC = "mic"
+
+        const val DEFAULT_RECOGNITION_HOLD_MS = 2 * 60_000L
     }
 }

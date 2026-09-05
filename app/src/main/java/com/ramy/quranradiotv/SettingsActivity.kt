@@ -1,12 +1,15 @@
 package com.ramy.quranradiotv
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.text.format.Formatter
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -20,6 +23,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.ramy.quranradiotv.databinding.ActivitySettingsBinding
 import com.ramy.quranradiotv.databinding.ItemSettingBinding
+import com.ramy.quranradiotv.recognition.ModelStore
+import com.ramy.quranradiotv.recognition.Recitation
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
@@ -52,9 +57,13 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowStreamEdit.root.requestFocus()
     }
 
+    /** The model download reports progress here while the screen is open. */
+    private val modelListener: (ModelStore.Status) -> Unit = { renderRecognition() }
+
     override fun onStart() {
         super.onStart()
         PlaybackStatus.addListener(playbackListener)
+        ModelStore.addListener(modelListener)
     }
 
     /** The overlay permission is granted on a system screen, so re-read it here. */
@@ -65,6 +74,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        ModelStore.removeListener(modelListener)
         PlaybackStatus.removeListener(playbackListener)
         super.onStop()
     }
@@ -103,12 +113,28 @@ class SettingsActivity : AppCompatActivity() {
         // timer button in, and generally no screen for the permission either.
         binding.rowSleepOverlay?.root?.setOnClickListener { openOverlaySettings() }
 
+        binding.rowRecognitionEnable.root.setOnClickListener { toggleRecognition() }
+        binding.rowRecognitionSourceRadio.root.setOnClickListener {
+            prefs.recognitionSource = Prefs.SOURCE_RADIO
+            recognitionChanged()
+        }
+        binding.rowRecognitionSourceMic.root.setOnClickListener {
+            prefs.recognitionSource = Prefs.SOURCE_MIC
+            recognitionChanged()
+            requestMicrophoneIfNeeded()
+        }
+        binding.rowRecognitionHold.root.setOnClickListener { showHoldDialog() }
+        binding.rowRecognitionModel.root.setOnClickListener { onModelRowTapped() }
+
         binding.rowResetAll.root.setOnClickListener { confirmResetAll() }
 
         listOfNotNull(
             binding.rowStreamEdit, binding.rowStreamReset,
             binding.rowBgDefault, binding.rowBgNone, binding.rowBgCustom, binding.rowBgReset,
-            binding.rowSleepOverlay, binding.rowResetAll
+            binding.rowSleepOverlay,
+            binding.rowRecognitionEnable, binding.rowRecognitionSourceRadio,
+            binding.rowRecognitionSourceMic, binding.rowRecognitionHold, binding.rowRecognitionModel,
+            binding.rowResetAll
         ).forEach { row ->
             row.root.setOnFocusChangeListener { v, hasFocus ->
                 v.animate()
@@ -184,6 +210,8 @@ class SettingsActivity : AppCompatActivity() {
             )
         }
 
+        renderRecognition()
+
         bindRow(
             binding.rowResetAll,
             title = getString(R.string.settings_reset_all),
@@ -192,6 +220,179 @@ class SettingsActivity : AppCompatActivity() {
 
         applyBackgroundPreview()
     }
+
+    // ---------------------------------------------------------------- recognition
+
+    private fun renderRecognition() {
+        val supported = Recitation.isSupported
+        val enabled = supported && prefs.recognitionEnabled
+        val installed = ModelStore.isInstalled(this)
+        val status = ModelStore.status
+
+        bindRow(
+            binding.rowRecognitionEnable,
+            title = getString(R.string.settings_recognition_enable),
+            summary = when {
+                !supported -> getString(R.string.settings_recognition_unsupported)
+                !enabled -> getString(R.string.settings_recognition_off, size(ModelStore.DOWNLOAD_BYTES))
+                installed -> getString(R.string.settings_recognition_on)
+                else -> getString(R.string.settings_recognition_on_no_model)
+            },
+            toggle = if (supported) enabled else null,
+            enabled = supported
+        )
+
+        val source = prefs.recognitionSource
+        bindRow(
+            binding.rowRecognitionSourceRadio,
+            title = getString(R.string.settings_recognition_source_radio),
+            summary = getString(R.string.settings_recognition_source_radio_summary),
+            checked = source == Prefs.SOURCE_RADIO,
+            enabled = enabled
+        )
+        val micGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        bindRow(
+            binding.rowRecognitionSourceMic,
+            title = getString(R.string.settings_recognition_source_mic),
+            summary = if (source == Prefs.SOURCE_MIC && !micGranted)
+                getString(R.string.settings_recognition_source_mic_denied)
+            else getString(R.string.settings_recognition_source_mic_summary),
+            checked = source == Prefs.SOURCE_MIC,
+            enabled = enabled
+        )
+
+        bindRow(
+            binding.rowRecognitionHold,
+            title = getString(R.string.settings_recognition_hold),
+            summary = getString(R.string.settings_recognition_hold_summary, holdLabel(prefs.recognitionHoldMillis)),
+            enabled = enabled
+        )
+
+        bindRow(
+            binding.rowRecognitionModel,
+            title = getString(R.string.settings_recognition_model),
+            summary = when (status) {
+                is ModelStore.Status.Installed ->
+                    getString(R.string.model_status_installed, size(status.bytesOnDisk))
+                is ModelStore.Status.Downloading ->
+                    if (status.percent >= 0) getString(R.string.model_status_downloading, status.percent)
+                    else getString(R.string.model_status_downloading_unknown)
+                ModelStore.Status.Installing -> getString(R.string.model_status_installing)
+                is ModelStore.Status.Failed -> getString(R.string.model_status_failed, status.reason)
+                ModelStore.Status.Missing ->
+                    getString(R.string.model_status_missing, size(ModelStore.DOWNLOAD_BYTES))
+            },
+            checked = status is ModelStore.Status.Installed,
+            progress = when (status) {
+                is ModelStore.Status.Downloading -> status.percent
+                ModelStore.Status.Installing -> -1
+                else -> null
+            }
+        )
+    }
+
+    /**
+     * Turning it on with no model yet offers the download at once — it is the
+     * one thing the feature cannot do without, and the size is worth saying
+     * before it starts.
+     */
+    private fun toggleRecognition() {
+        if (!Recitation.isSupported) return
+        val turningOn = !prefs.recognitionEnabled
+        prefs.recognitionEnabled = turningOn
+        recognitionChanged()
+        if (turningOn) {
+            if (!ModelStore.isInstalled(this) && ModelStore.status is ModelStore.Status.Missing) {
+                confirmModelDownload()
+            }
+            if (prefs.recognitionSource == Prefs.SOURCE_MIC) requestMicrophoneIfNeeded()
+        }
+    }
+
+    private fun recognitionChanged() {
+        Recitation.onSettingsChanged()
+        renderRecognition()
+    }
+
+    private fun onModelRowTapped() {
+        when (val status = ModelStore.status) {
+            is ModelStore.Status.Installed -> confirmModelDelete(status.bytesOnDisk)
+            is ModelStore.Status.Downloading -> confirmModelCancel()
+            ModelStore.Status.Installing -> Unit
+            is ModelStore.Status.Failed, ModelStore.Status.Missing -> confirmModelDownload()
+        }
+    }
+
+    private fun confirmModelDownload() {
+        AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
+            .setTitle(R.string.model_confirm_download_title)
+            .setMessage(getString(R.string.model_confirm_download_text, size(ModelStore.DOWNLOAD_BYTES)))
+            .setPositiveButton(R.string.dialog_download) { _, _ ->
+                ModelStore.download()
+                toast(getString(R.string.model_download_started))
+            }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun confirmModelDelete(bytes: Long) {
+        AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
+            .setTitle(R.string.model_confirm_delete_title)
+            .setMessage(getString(R.string.model_confirm_delete_text, size(bytes)))
+            .setPositiveButton(R.string.dialog_remove) { _, _ -> ModelStore.delete() }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun confirmModelCancel() {
+        AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
+            .setTitle(R.string.model_confirm_cancel_title)
+            .setPositiveButton(R.string.dialog_stop) { _, _ -> ModelStore.cancelDownload() }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun showHoldDialog() {
+        val labels = HOLD_PRESETS.map { (labelRes, _) -> getString(labelRes) }.toTypedArray()
+        val current = HOLD_PRESETS.indexOfFirst { it.second == prefs.recognitionHoldMillis }
+        AlertDialog.Builder(this, R.style.Theme_QuranRadio_Dialog)
+            .setTitle(R.string.settings_recognition_hold)
+            .setSingleChoiceItems(labels, current) { dialog, which ->
+                prefs.recognitionHoldMillis = HOLD_PRESETS[which].second
+                renderRecognition()
+                toast(getString(R.string.saved))
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun holdLabel(millis: Long): String {
+        HOLD_PRESETS.firstOrNull { it.second == millis }?.let { return getString(it.first) }
+        return getString(R.string.sleep_minutes_value, (millis / 60_000L).toInt().coerceAtLeast(1))
+    }
+
+    private fun requestMicrophoneIfNeeded() {
+        if (Build.VERSION.SDK_INT < 23) return
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!granted) requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_MICROPHONE)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_MICROPHONE) {
+            Recitation.onPermissionResult()
+            renderRecognition()
+        }
+    }
+
+    private fun size(bytes: Long): String = Formatter.formatShortFileSize(this, bytes)
 
     /**
      * Hands off to the system's own permission screen. Televisions generally
@@ -206,11 +407,21 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * [checked] draws the tick and the selected fill, for rows that are one of
+     * a set. [toggle] draws a switch instead, for rows that are simply on or
+     * off. [progress] shows a bar (0–100, or -1 for indeterminate). A row that
+     * is not [enabled] is dimmed and ignores presses: a setting that has no
+     * effect until another is turned on.
+     */
     private fun bindRow(
         row: ItemSettingBinding,
         title: String,
         summary: String? = null,
-        checked: Boolean = false
+        checked: Boolean = false,
+        toggle: Boolean? = null,
+        progress: Int? = null,
+        enabled: Boolean = true
     ) {
         row.title.text = title
         if (summary.isNullOrBlank()) {
@@ -219,8 +430,25 @@ class SettingsActivity : AppCompatActivity() {
             row.summary.visibility = View.VISIBLE
             row.summary.text = summary
         }
-        row.check.visibility = if (checked) View.VISIBLE else View.INVISIBLE
+        if (toggle != null) {
+            row.toggle.visibility = View.VISIBLE
+            row.toggle.isChecked = toggle
+            row.check.visibility = View.GONE
+        } else {
+            row.toggle.visibility = View.GONE
+            row.check.visibility = if (checked) View.VISIBLE else View.INVISIBLE
+        }
+        if (progress != null) {
+            row.progress.visibility = View.VISIBLE
+            row.progress.isIndeterminate = progress < 0
+            if (progress >= 0) row.progress.progress = progress
+        } else {
+            row.progress.visibility = View.GONE
+        }
         row.root.isSelected = checked
+        row.root.isEnabled = enabled
+        row.root.isFocusable = enabled
+        row.root.alpha = if (enabled) 1f else 0.45f
     }
 
     /**
@@ -365,6 +593,10 @@ class SettingsActivity : AppCompatActivity() {
             .setPositiveButton(R.string.dialog_reset) { _, _ ->
                 prefs.resetAll()
                 BackgroundLoader.clearCache(this)
+                // Recognition goes back to off; the model itself is kept, since
+                // it is a download rather than a setting, and its row says how
+                // to remove it.
+                Recitation.onSettingsChanged()
                 render()
                 toast(getString(R.string.settings_reset_done))
             }
@@ -410,5 +642,18 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private companion object {
+        const val REQUEST_MICROPHONE = 1002
+
+        /** How long an identified Surah stays up, in the order offered. */
+        val HOLD_PRESETS = listOf(
+            R.string.hold_30s to 30_000L,
+            R.string.hold_1m to 60_000L,
+            R.string.hold_2m to 2 * 60_000L,
+            R.string.hold_5m to 5 * 60_000L,
+            R.string.hold_15m to 15 * 60_000L,
+        )
     }
 }

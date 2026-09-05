@@ -27,7 +27,11 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.TeeAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -38,6 +42,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.ramy.quranradiotv.recognition.RadioAudioTap
 
 /**
  * Holds the ExoPlayer instance and publishes a MediaSession so the TV remote's
@@ -79,7 +84,7 @@ class PlaybackService : MediaSessionService() {
             .setReadTimeoutMs(15_000)
             .setAllowCrossProtocolRedirects(true)
 
-        player = ExoPlayer.Builder(this)
+        player = ExoPlayer.Builder(this, TappedRenderersFactory(this))
             .setMediaSourceFactory(DefaultMediaSourceFactory(httpFactory))
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -586,6 +591,26 @@ class PlaybackService : MediaSessionService() {
             }.toMutableList()
             return Futures.immediateFuture(resolved)
         }
+    }
+
+    /**
+     * The stock renderers, with one addition: a tee in the audio pipeline that
+     * hands the decoded stream to the Surah recogniser. It sits there whether
+     * or not recognition is on — the player is built once — and the tap itself
+     * is what checks whether anyone wants the audio before doing any work.
+     */
+    private class TappedRenderersFactory(context: Context) : DefaultRenderersFactory(context) {
+        override fun buildAudioSink(
+            context: Context,
+            enableFloatOutput: Boolean,
+            enableAudioTrackPlaybackParams: Boolean
+        ): AudioSink = DefaultAudioSink.Builder(context)
+            .setEnableFloatOutput(enableFloatOutput)
+            .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+            .setAudioProcessorChain(
+                DefaultAudioSink.DefaultAudioProcessorChain(TeeAudioProcessor(RadioAudioTap()))
+            )
+            .build()
     }
 
     private fun buildMediaItem(): MediaItem = MediaItem.Builder()

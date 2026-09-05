@@ -121,39 +121,166 @@
             tools:text="Stops in 14:59"
             tools:visibility="visible" />
 
-        <!-- Primary transport -->
+        <!--
+          What the recogniser thinks is being recited. Shown for the hold time
+          from Settings after the last confirmation, then gone again.
+        -->
         <LinearLayout
-            android:id="@+id/btnPlayPause"
+            android:id="@+id/recitationGroup"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/btn_primary_height"
-            android:layout_marginTop="24dp"
-            android:minWidth="196dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"
-            android:paddingRight="24dp"
-            android:background="@drawable/btn_primary"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:clickable="true"
-            android:nextFocusDown="@+id/btnStop">
-
-            <ImageView
-                android:id="@+id/playPauseIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_play" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="left"
+            android:layout_marginTop="14dp"
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <TextView
-                android:id="@+id/playPauseLabel"
+                android:id="@+id/recitationLabel"
+                style="@style/Text.Subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="12dp"
+                android:textSize="11sp"
+                android:textAllCaps="true"
+                android:textColor="@color/gold"
+                android:text="@string/recitation_now" />
+
+            <TextView
+                android:id="@+id/recitationSurah"
+                style="@style/Text.Station"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="26sp"
+                tools:text="Surah Al-Baqarah" />
+
+            <TextView
+                android:id="@+id/recitationAyah"
+                style="@style/Text.Status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:textColor="@color/text_secondary"
+                tools:text="Ayah 255" />
+
+            <!-- Opens the Ayah in the Quran app (quran://surah/ayah), or on the web -->
+            <TextView
+                android:id="@+id/btnOpenAyah"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:minHeight="40dp"
+                android:gravity="center"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:background="@drawable/btn_secondary"
                 android:textColor="@color/content_on_button"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:text="@string/action_play" />
+                android:textSize="14sp"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusDown="@+id/btnPlayPause"
+                android:text="@string/action_open_quran" />
+        </LinearLayout>
+
+        <!-- Why nothing is shown yet, when recognition is on. Tappable where it says so. -->
+        <TextView
+            android:id="@+id/recitationHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:maxWidth="380dp"
+            android:gravity="left"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Listening for the recitation…" />
+
+        <!-- Primary transport -->
+        <!-- Primary transport, with the Surah button beside it -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/btnPlayPause"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/btn_primary_height"
+                android:minWidth="196dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingLeft="20dp"
+                android:paddingRight="24dp"
+                android:background="@drawable/btn_primary"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:nextFocusDown="@+id/btnStop"
+                android:nextFocusRight="@+id/btnIdentify">
+
+                <ImageView
+                    android:id="@+id/playPauseIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_play" />
+
+                <TextView
+                    android:id="@+id/playPauseLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="12dp"
+                    android:textColor="@color/content_on_button"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:text="@string/action_play" />
+            </LinearLayout>
+
+            <!--
+              "Which Surah?" — opens a short listening window. Only shown once
+              Surah recognition is turned on in Settings.
+            -->
+            <LinearLayout
+                android:id="@+id/btnIdentify"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/btn_primary_height"
+                android:layout_marginLeft="10dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingLeft="16dp"
+                android:paddingRight="18dp"
+                android:background="@drawable/btn_secondary"
+                android:focusable="true"
+                android:clickable="true"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:nextFocusLeft="@id/btnPlayPause"
+                android:nextFocusDown="@+id/btnSleep">
+
+                <ImageView
+                    android:id="@+id/identifyIcon"
+                    android:layout_width="@dimen/icon_size"
+                    android:layout_height="@dimen/icon_size"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_identify" />
+
+                <TextView
+                    android:id="@+id/identifyLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:maxLines="1"
+                    android:textColor="@color/content_on_button"
+                    android:textSize="15sp"
+                    android:text="@string/action_identify" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Secondary row -->

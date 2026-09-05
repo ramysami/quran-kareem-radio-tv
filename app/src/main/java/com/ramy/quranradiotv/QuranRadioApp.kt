@@ -1,6 +1,8 @@
 package com.ramy.quranradiotv
 
 import android.app.Application
+import com.ramy.quranradiotv.recognition.ModelStore
+import com.ramy.quranradiotv.recognition.Recitation
 
 /**
  * The one component guaranteed to be alive whichever way the process was
@@ -18,6 +20,8 @@ class QuranRadioApp : Application() {
         super.onCreate()
 
         SleepTimer.init(this)
+        ModelStore.init(this)
+        Recitation.init(this)
 
         PlaybackStatus.addListener {
             RadioWidgets.refresh(this)

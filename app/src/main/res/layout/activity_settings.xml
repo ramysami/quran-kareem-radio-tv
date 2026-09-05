@@ -121,6 +121,46 @@
                 android:id="@+id/rowSleepOverlay"
                 layout="@layout/item_setting" />
 
+            <!-- ============ Surah recognition ============ -->
+            <TextView
+                style="@style/Text.SectionHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="2dp"
+                android:text="@string/settings_section_recognition" />
+
+            <include
+                android:id="@+id/rowRecognitionEnable"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowRecognitionSourceRadio"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowRecognitionSourceMic"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowRecognitionHold"
+                layout="@layout/item_setting" />
+
+            <include
+                android:id="@+id/rowRecognitionModel"
+                layout="@layout/item_setting" />
+
+            <TextView
+                android:id="@+id/recognitionCredits"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:text="@string/settings_recognition_credits" />
+
             <TextView
                 style="@style/Text.SectionHeader"
                 android:layout_width="wrap_content"

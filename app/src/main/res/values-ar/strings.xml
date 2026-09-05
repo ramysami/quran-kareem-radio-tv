@@ -97,4 +97,72 @@
     <string name="dialog_save">حفظ</string>
     <string name="dialog_reset">إعادة الضبط</string>
     <string name="saved">تم الحفظ</string>
+
+    <!-- التعرّف على السورة: شاشة المشغّل -->
+    <string name="recitation_now">يُتلى الآن</string>
+    <string name="recitation_ayah">الآية %1$d</string>
+    <string name="action_open_quran">افتح في تطبيق القرآن</string>
+    <string name="open_quran_failed">لم يُعثر على تطبيق للقرآن — سيُفتح موقع quran.com</string>
+    <string name="recitation_hint_loading">جارٍ تجهيز التعرّف على السورة…</string>
+    <string name="recitation_hint_listening">جارٍ الاستماع إلى الإذاعة…</string>
+    <string name="recitation_hint_listening_mic">جارٍ الاستماع عبر الميكروفون…</string>
+    <string name="recitation_hint_play">اضغط تشغيل ليتم التعرّف على السورة</string>
+    <string name="recitation_hint_model_missing">التعرّف على السورة مفعّل لكن النموذج غير محمّل — اضغط لفتح الإعدادات</string>
+    <string name="recitation_hint_downloading">جارٍ تحميل نموذج التعرّف… %1$d%%</string>
+    <string name="recitation_hint_installing">جارٍ فكّ ضغط نموذج التعرّف…</string>
+    <string name="recitation_hint_mic_permission">يلزم إذن الميكروفون — اضغط للسماح</string>
+    <string name="recitation_hint_mic_unavailable">لا يوجد ميكروفون في هذا الجهاز — اختر بث الإذاعة من الإعدادات</string>
+    <string name="recitation_hint_failed">تعذّر التعرّف على السورة — لا يمكن تشغيل النموذج على هذا الجهاز</string>
+
+
+    <string name="action_identify">أي سورة؟</string>
+    <string name="action_identify_preparing">جارٍ التجهيز…</string>
+    <string name="action_identify_listening">%1$d ث</string>
+    <string name="action_identify_finishing">لحظة…</string>
+    <string name="recitation_hint_not_recognized">لم يتم التعرّف على التلاوة — حاول مرة أخرى</string>
+    <string name="recitation_hint_needs_playback">اضغط تشغيل أولًا ثم حاول مرة أخرى</string>
+
+    <!-- التعرّف على السورة: الإعدادات -->
+    <string name="settings_section_recognition">التعرّف على السورة</string>
+    <string name="settings_recognition_unsupported">يحتاج أندرويد ٧٫٠ أو أحدث</string>
+    <string name="settings_recognition_enable">التعرّف على السورة التي تُتلى</string>
+    <string name="settings_recognition_off">متوقف. يحتاج تحميل نموذج لمرة واحدة بحجم %1$s تقريبًا</string>
+    <string name="settings_recognition_on">مفعّل — يظهر زر «أي سورة؟» بجانب زر التشغيل</string>
+    <string name="settings_recognition_on_no_model">مفعّل — بانتظار تحميل النموذج أدناه</string>
+    <string name="settings_recognition_source_radio">الاستماع إلى بث الإذاعة</string>
+    <string name="settings_recognition_source_radio_summary">يتعرّف على ما يشغّله هذا التطبيق. لا يُستخدم الميكروفون.</string>
+    <string name="settings_recognition_source_mic">الاستماع عبر الميكروفون</string>
+    <string name="settings_recognition_source_mic_summary">لتلاوة تُبثّ بالقرب منك — من جهاز آخر أو من مكبّر صوت المسجد</string>
+    <string name="settings_recognition_source_mic_denied">لم يُمنح إذن الميكروفون — اضغط لطلبه مرة أخرى</string>
+    <string name="settings_recognition_hold">إبقاء النتيجة على الشاشة لمدة</string>
+    <string name="settings_recognition_hold_summary">%1$s</string>
+    <string name="hold_30s">٣٠ ثانية</string>
+    <string name="hold_1m">دقيقة واحدة</string>
+    <string name="hold_2m">دقيقتان</string>
+    <string name="hold_5m">٥ دقائق</string>
+    <string name="hold_15m">١٥ دقيقة</string>
+    <string name="settings_recognition_model">نموذج التعرّف</string>
+    <string name="model_status_missing">غير محمّل — حجمه %1$s تقريبًا. اضغط للتحميل</string>
+    <string name="model_status_downloading">جارٍ التحميل… %1$d%% — اضغط للإيقاف</string>
+    <string name="model_status_downloading_unknown">جارٍ التحميل… — اضغط للإيقاف</string>
+    <string name="model_status_installing">جارٍ فكّ الضغط…</string>
+    <string name="model_status_installed">محمّل — يشغل %1$s من الجهاز. اضغط للإزالة</string>
+    <string name="model_status_failed">%1$s — اضغط لإعادة المحاولة</string>
+    <string name="model_download_title">إذاعة القرآن الكريم — نموذج التعرّف على الكلام</string>
+    <string name="model_download_description">نموذج التعرّف على تلاوة القرآن</string>
+    <string name="model_error_space">لا توجد مساحة كافية — يلزم نحو ٢٠٠ ميغابايت</string>
+    <string name="model_error_download">فشل التحميل (الرمز %1$d)</string>
+    <string name="model_error_network">فشل التحميل — تحقّق من الاتصال</string>
+    <string name="model_error_unpack">الملفات المحمّلة غير كاملة — حاول مرة أخرى</string>
+    <string name="model_confirm_download_title">تحميل نموذج التعرّف؟</string>
+    <string name="model_confirm_download_text">نحو %1$s من huggingface.co: نموذج Whisper مدرَّب على تلاوة القرآن من Tarteel AI (رخصة Apache 2.0). يُفضّل عبر Wi-Fi.\n\nبعد تحميله يعمل كل شيء على هذا الجهاز: لا يخرج منه شيء ممّا تستمع إليه.</string>
+    <string name="model_confirm_delete_title">إزالة النموذج؟</string>
+    <string name="model_confirm_delete_text">يحرّر %1$s. يبقى التعرّف على السورة متوقفًا حتى يُحمَّل مرة أخرى.</string>
+    <string name="model_confirm_cancel_title">إيقاف التحميل؟</string>
+    <string name="model_download_started">جارٍ تحميل النموذج — يظهر التقدّم هنا وفي لوحة الإشعارات</string>
+    <string name="dialog_download">تحميل</string>
+    <string name="dialog_remove">إزالة</string>
+    <string name="dialog_stop">إيقاف</string>
+    <string name="settings_recognition_credits">التعرّف تقريبي ويتم بالكامل على الجهاز. نص القرآن من مشروع تنزيل (tanzil.net)، والتعرّف بنموذج Whisper من Tarteel AI عبر ONNX Runtime.</string>
+
 </resources>

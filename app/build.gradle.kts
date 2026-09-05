@@ -11,12 +11,20 @@ android {
         applicationId = "com.ramy.quranradiotv"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.4"
+
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
     }
 
     buildTypes {
         release {
+            // Every release so far has been signed with the local debug key, so
+            // the release build keeps using it: a new key would refuse to install
+            // over the copies people already have.
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -51,4 +59,23 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
     implementation("androidx.media3:media3-session:1.3.1")
     implementation("androidx.media3:media3-datasource-okhttp:1.3.1")
+
+    // Runs the Whisper speech model for the Surah / Ayah display. The runtime
+    // ships its native code for every ABI; the model itself is an optional
+    // download, never part of the APK.
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
+
+    testImplementation("junit:junit:4.13.2")
+    // The real org.json, since the Android stub throws from every method.
+    testImplementation("org.json:json:20240303")
+    // The same runtime for the JVM, so the recogniser can be tested on a
+    // workstation against real clips.
+    testImplementation("com.microsoft.onnxruntime:onnxruntime:1.22.0")
+}
+
+// Set WHISPER_MODEL_DIR to a directory holding the downloaded model files and
+// a wav/ folder of 16 kHz clips to run the end-to-end transcription test.
+tasks.withType<Test>().configureEach {
+    systemProperty("whisper.model.dir", System.getenv("WHISPER_MODEL_DIR") ?: "")
+    maxHeapSize = "2g"
 }

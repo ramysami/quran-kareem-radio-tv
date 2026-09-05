@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        ONNX Runtime, which runs the Surah recogniser, is built for Android 7.0
+        and up. The radio itself runs back to 5.0, so the library's minimum is
+        overridden here and the recogniser is simply not offered below 7.0
+        (see Recitation.isSupported).
+    -->
+    <uses-sdk tools:overrideLibrary="ai.onnxruntime" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -7,6 +16,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+        Only for the Surah recogniser's "listen through the microphone" option,
+        which the user picks in Settings; the default listens to the radio's
+        own audio and never opens the microphone at all.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!--
         Lets the sleep-timer button in the notification open the app's preset
@@ -25,6 +41,9 @@
         android:required="false" />
     <uses-feature
         android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
         android:required="false" />
 
     <application
@@ -105,6 +124,18 @@
         <receiver
             android:name=".SleepAlarmReceiver"
             android:exported="false" />
+
+        <!--
+            The system's DownloadManager announcing that the speech model has
+            arrived, so it can be unpacked even if the app was closed meanwhile.
+        -->
+        <receiver
+            android:name=".recognition.ModelDownloadReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".RadioWidgetProvider"

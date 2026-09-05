@@ -3,6 +3,7 @@ package com.ramy.quranradiotv
 import android.Manifest
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -10,8 +11,10 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
@@ -29,6 +32,9 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ramy.quranradiotv.databinding.ActivityMainBinding
+import com.ramy.quranradiotv.recognition.ModelStore
+import com.ramy.quranradiotv.recognition.Recitation
+import com.ramy.quranradiotv.recognition.SurahNames
 import kotlinx.coroutines.launch
 
 @UnstableApi
@@ -47,8 +53,21 @@ class MainActivity : AppCompatActivity() {
 
     private val sleepListener: (Long) -> Unit = { remaining -> renderSleepTimer(remaining) }
 
-    private val playbackListener: (PlaybackStatus.Phase) -> Unit =
-        { phase -> keepScreenAwake(phase.isActive) }
+    private val playbackListener: (PlaybackStatus.Phase) -> Unit = { phase ->
+        keepScreenAwake(phase.isActive)
+        renderRecitation()
+    }
+
+    private val recitationListener: () -> Unit = {
+        renderRecitation()
+        // The button was pressed with the microphone chosen and no permission:
+        // ask, once per visit, rather than only pointing at the hint.
+        if (Recitation.state is Recitation.State.NeedsMicPermission && !micAsked) requestMicrophone()
+    }
+    private val modelListener: (ModelStore.Status) -> Unit = { renderRecitation() }
+
+    /** Asked for the microphone once this visit; a refusal is not nagged about. */
+    private var micAsked = false
 
     // ---------------------------------------------------------------- lifecycle
 
@@ -63,11 +82,16 @@ class MainActivity : AppCompatActivity() {
         binding.btnStop.setOnClickListener { stopPlayback() }
         binding.btnSleep.setOnClickListener { SleepTimerDialogs.show(this) }
         binding.btnSettings.setOnClickListener { openSettings() }
+        binding.btnIdentify.setOnClickListener { Recitation.identify() }
+        binding.btnOpenAyah.setOnClickListener { openInQuranApp() }
+        addFocusScale(binding.btnOpenAyah)
+        binding.recitationHint.setOnClickListener { onRecitationHintTapped() }
 
         addFocusScale(binding.btnPlayPause)
         addFocusScale(binding.btnStop)
         addFocusScale(binding.btnSleep)
         addFocusScale(binding.btnSettings)
+        addFocusScale(binding.btnIdentify)
 
         binding.btnPlayPause.requestFocus()
         requestNotificationPermissionIfNeeded()
@@ -79,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         connectToService()
         SleepTimer.addListener(sleepListener)
         PlaybackStatus.addListener(playbackListener)
+        Recitation.addListener(recitationListener)
+        ModelStore.addListener(modelListener)
+        // The recogniser works only while this screen is in front: it is the
+        // one place its answer is drawn.
+        Recitation.setForeground(true)
     }
 
     override fun onResume() {
@@ -88,6 +117,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        Recitation.setForeground(false)
+        Recitation.removeListener(recitationListener)
+        ModelStore.removeListener(modelListener)
         SleepTimer.removeListener(sleepListener)
         PlaybackStatus.removeListener(playbackListener)
         releaseController()
@@ -259,6 +291,121 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ---------------------------------------------------------------- recitation
+
+    /**
+     * Three things: the "Which Surah?" button and what it currently reads, the
+     * answer it last produced, and — when there is something to say — a line
+     * under them explaining a state the user can do something about.
+     */
+    private fun renderRecitation() {
+        val current = Recitation.current
+        val state = Recitation.state
+        val enabled = Recitation.isEnabled
+
+        binding.btnIdentify.visibility = if (enabled) View.VISIBLE else View.GONE
+        val busy = state is Recitation.State.Loading ||
+            state is Recitation.State.Listening ||
+            state is Recitation.State.Finishing
+        binding.btnIdentify.isEnabled = !busy
+        binding.btnIdentify.alpha = if (busy) 0.7f else 1f
+        binding.identifyLabel.text = when (state) {
+            Recitation.State.Loading -> getString(R.string.action_identify_preparing)
+            is Recitation.State.Listening -> getString(R.string.action_identify_listening, Recitation.secondsLeft)
+            Recitation.State.Finishing -> getString(R.string.action_identify_finishing)
+            else -> getString(R.string.action_identify)
+        }
+
+        if (current != null) {
+            binding.recitationGroup.visibility = View.VISIBLE
+            binding.recitationSurah.text =
+                getString(R.string.recitation_surah, SurahNames.name(this, current.surah))
+            binding.recitationAyah.text = getString(R.string.recitation_ayah, current.ayah)
+        } else {
+            binding.recitationGroup.visibility = View.GONE
+        }
+
+        val hint: String? = when (state) {
+            Recitation.State.Off, Recitation.State.Idle, Recitation.State.Loading,
+            Recitation.State.Finishing -> null
+            is Recitation.State.Listening ->
+                if (state.source == Recitation.Source.MIC) getString(R.string.recitation_hint_listening_mic)
+                else getString(R.string.recitation_hint_listening)
+            Recitation.State.NotRecognized -> getString(R.string.recitation_hint_not_recognized)
+            Recitation.State.NeedsPlayback -> getString(R.string.recitation_hint_needs_playback)
+            Recitation.State.ModelMissing -> when (val m = ModelStore.status) {
+                is ModelStore.Status.Downloading ->
+                    getString(R.string.recitation_hint_downloading, m.percent.coerceAtLeast(0))
+                ModelStore.Status.Installing -> getString(R.string.recitation_hint_installing)
+                else -> getString(R.string.recitation_hint_model_missing)
+            }
+            Recitation.State.NeedsMicPermission -> getString(R.string.recitation_hint_mic_permission)
+            Recitation.State.MicUnavailable -> getString(R.string.recitation_hint_mic_unavailable)
+            Recitation.State.Failed -> getString(R.string.recitation_hint_failed)
+        }
+        binding.recitationHint.visibility = if (hint == null) View.GONE else View.VISIBLE
+        binding.recitationHint.text = hint ?: ""
+        binding.recitationHint.isClickable = state is Recitation.State.NeedsMicPermission ||
+            state is Recitation.State.ModelMissing
+    }
+
+    /**
+     * Hands the identified Ayah to the Quran app through its `quran://surah/ayah`
+     * link; with no such app installed, the same Ayah on quran.com.
+     */
+    private fun openInQuranApp() {
+        val current = Recitation.current ?: return
+        val deepLink = Intent(Intent.ACTION_VIEW, Uri.parse("quran://${current.surah}/${current.ayah}"))
+        try {
+            startActivity(deepLink)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.open_quran_failed, Toast.LENGTH_SHORT).show()
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://quran.com/${current.surah}/${current.ayah}")))
+            }
+        }
+    }
+
+    /** The two hints that name something the user can do about it. */
+    private fun onRecitationHintTapped() {
+        when (Recitation.state) {
+            Recitation.State.NeedsMicPermission -> {
+                if (Build.VERSION.SDK_INT >= 23 &&
+                    micAsked && !shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)
+                ) {
+                    // Refused with "don't ask again": only the system screen can undo that.
+                    runCatching {
+                        startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.parse("package:$packageName")
+                            )
+                        )
+                    }
+                } else {
+                    requestMicrophone()
+                }
+            }
+            Recitation.State.ModelMissing -> openSettings()
+            else -> Unit
+        }
+    }
+
+    private fun requestMicrophone() {
+        if (Build.VERSION.SDK_INT < 23) return
+        micAsked = true
+        requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_MICROPHONE)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_MICROPHONE) Recitation.onPermissionResult()
+    }
+
     private fun tintDot(colorRes: Int) {
         binding.statusDot.backgroundTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, colorRes))
@@ -389,5 +536,9 @@ class MainActivity : AppCompatActivity() {
         if (!granted) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
         }
+    }
+
+    private companion object {
+        const val REQUEST_MICROPHONE = 1002
     }
 }

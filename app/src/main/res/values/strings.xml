@@ -98,4 +98,191 @@
     <string name="dialog_save">Save</string>
     <string name="dialog_reset">Reset</string>
     <string name="saved">Saved</string>
+
+    <!-- Surah recognition: player screen -->
+    <string name="recitation_now">Now reciting</string>
+    <string name="recitation_surah" translatable="false">سورة %1$s</string>
+    <string name="recitation_ayah">Ayah %1$d</string>
+    <string name="action_open_quran">Open in Quran app</string>
+    <string name="open_quran_failed">No Quran app found — opening quran.com instead</string>
+    <string name="recitation_hint_loading">Preparing Surah recognition…</string>
+    <string name="recitation_hint_listening">Listening to the radio…</string>
+    <string name="recitation_hint_listening_mic">Listening through the microphone…</string>
+    <string name="recitation_hint_play">Press Play to identify the Surah</string>
+    <string name="recitation_hint_model_missing">Surah recognition is on, but its model isn\'t downloaded — tap to open Settings</string>
+    <string name="recitation_hint_downloading">Downloading the recognition model… %1$d%%</string>
+    <string name="recitation_hint_installing">Unpacking the recognition model…</string>
+    <string name="recitation_hint_mic_permission">Microphone access is needed — tap to allow</string>
+    <string name="recitation_hint_mic_unavailable">No microphone on this device — choose the radio stream in Settings</string>
+    <string name="recitation_hint_failed">Surah recognition failed — the model could not be run on this device</string>
+
+
+    <string name="action_identify">Which Surah?</string>
+    <string name="action_identify_preparing">Preparing…</string>
+    <string name="action_identify_listening">%1$d s</string>
+    <string name="action_identify_finishing">One moment…</string>
+    <string name="recitation_hint_not_recognized">Couldn\'t place the recitation — try again</string>
+    <string name="recitation_hint_needs_playback">Press Play first, then ask again</string>
+
+    <!-- Surah recognition: settings -->
+    <string name="settings_section_recognition">Surah recognition</string>
+    <string name="settings_recognition_unsupported">Needs Android 7.0 or later</string>
+    <string name="settings_recognition_enable">Identify the Surah being recited</string>
+    <string name="settings_recognition_off">Off. Needs a one-time model download of about %1$s</string>
+    <string name="settings_recognition_on">On — a "Which Surah?" button sits beside Play</string>
+    <string name="settings_recognition_on_no_model">On — waiting for the model below</string>
+    <string name="settings_recognition_source_radio">Listen to the radio stream</string>
+    <string name="settings_recognition_source_radio_summary">Identifies what this app is playing. No microphone involved.</string>
+    <string name="settings_recognition_source_mic">Listen through the microphone</string>
+    <string name="settings_recognition_source_mic_summary">For recitation playing nearby — another device, a mosque speaker</string>
+    <string name="settings_recognition_source_mic_denied">Microphone permission not granted — tap to ask again</string>
+    <string name="settings_recognition_hold">Keep the answer on screen for</string>
+    <string name="settings_recognition_hold_summary">%1$s</string>
+    <string name="hold_30s">30 seconds</string>
+    <string name="hold_1m">1 minute</string>
+    <string name="hold_2m">2 minutes</string>
+    <string name="hold_5m">5 minutes</string>
+    <string name="hold_15m">15 minutes</string>
+    <string name="settings_recognition_model">Recognition model</string>
+    <string name="model_status_missing">Not downloaded — about %1$s. Tap to download</string>
+    <string name="model_status_downloading">Downloading… %1$d%% — tap to stop</string>
+    <string name="model_status_downloading_unknown">Downloading… — tap to stop</string>
+    <string name="model_status_installing">Unpacking…</string>
+    <string name="model_status_installed">Installed — %1$s on this device. Tap to remove</string>
+    <string name="model_status_failed">%1$s — tap to retry</string>
+    <string name="model_download_title">Quran Kareem Radio — speech model</string>
+    <string name="model_download_description">Quran recitation recognition model</string>
+    <string name="model_error_space">Not enough free space — about 200 MB is needed</string>
+    <string name="model_error_download">Download failed (code %1$d)</string>
+    <string name="model_error_network">Download failed — check the connection</string>
+    <string name="model_error_unpack">The downloaded files were incomplete — try again</string>
+    <string name="model_confirm_download_title">Download the recognition model?</string>
+    <string name="model_confirm_download_text">About %1$s, from huggingface.co: a Whisper model trained on Quran recitation by Tarteel AI (Apache 2.0 licence). Best done over Wi-Fi.\n\nOnce it is on the device everything runs locally: nothing you listen to leaves it.</string>
+    <string name="model_confirm_delete_title">Remove the model?</string>
+    <string name="model_confirm_delete_text">Frees %1$s. Surah recognition stays off until it is downloaded again.</string>
+    <string name="model_confirm_cancel_title">Stop the download?</string>
+    <string name="model_download_started">Downloading the model — progress shows here and in the notification shade</string>
+    <string name="dialog_download">Download</string>
+    <string name="dialog_remove">Remove</string>
+    <string name="dialog_stop">Stop</string>
+    <string name="settings_recognition_credits">Identification is approximate and entirely on-device. Quran text by the Tanzil Project (tanzil.net); recognition by Tarteel AI\'s Whisper model, run with ONNX Runtime.</string>
+
+    <!-- The 114 Surah names, in order, for the "now reciting" display.
+         Always in Arabic, whatever language the rest of the app is in. -->
+    <string-array name="surah_names" translatable="false">
+        <item>الفاتحة</item>
+        <item>البقرة</item>
+        <item>آل عمران</item>
+        <item>النساء</item>
+        <item>المائدة</item>
+        <item>الأنعام</item>
+        <item>الأعراف</item>
+        <item>الأنفال</item>
+        <item>التوبة</item>
+        <item>يونس</item>
+        <item>هود</item>
+        <item>يوسف</item>
+        <item>الرعد</item>
+        <item>إبراهيم</item>
+        <item>الحجر</item>
+        <item>النحل</item>
+        <item>الإسراء</item>
+        <item>الكهف</item>
+        <item>مريم</item>
+        <item>طه</item>
+        <item>الأنبياء</item>
+        <item>الحج</item>
+        <item>المؤمنون</item>
+        <item>النور</item>
+        <item>الفرقان</item>
+        <item>الشعراء</item>
+        <item>النمل</item>
+        <item>القصص</item>
+        <item>العنكبوت</item>
+        <item>الروم</item>
+        <item>لقمان</item>
+        <item>السجدة</item>
+        <item>الأحزاب</item>
+        <item>سبأ</item>
+        <item>فاطر</item>
+        <item>يس</item>
+        <item>الصافات</item>
+        <item>ص</item>
+        <item>الزمر</item>
+        <item>غافر</item>
+        <item>فصلت</item>
+        <item>الشورى</item>
+        <item>الزخرف</item>
+        <item>الدخان</item>
+        <item>الجاثية</item>
+        <item>الأحقاف</item>
+        <item>محمد</item>
+        <item>الفتح</item>
+        <item>الحجرات</item>
+        <item>ق</item>
+        <item>الذاريات</item>
+        <item>الطور</item>
+        <item>النجم</item>
+        <item>القمر</item>
+        <item>الرحمن</item>
+        <item>الواقعة</item>
+        <item>الحديد</item>
+        <item>المجادلة</item>
+        <item>الحشر</item>
+        <item>الممتحنة</item>
+        <item>الصف</item>
+        <item>الجمعة</item>
+        <item>المنافقون</item>
+        <item>التغابن</item>
+        <item>الطلاق</item>
+        <item>التحريم</item>
+        <item>الملك</item>
+        <item>القلم</item>
+        <item>الحاقة</item>
+        <item>المعارج</item>
+        <item>نوح</item>
+        <item>الجن</item>
+        <item>المزمل</item>
+        <item>المدثر</item>
+        <item>القيامة</item>
+        <item>الإنسان</item>
+        <item>المرسلات</item>
+        <item>النبأ</item>
+        <item>النازعات</item>
+        <item>عبس</item>
+        <item>التكوير</item>
+        <item>الانفطار</item>
+        <item>المطففين</item>
+        <item>الانشقاق</item>
+        <item>البروج</item>
+        <item>الطارق</item>
+        <item>الأعلى</item>
+        <item>الغاشية</item>
+        <item>الفجر</item>
+        <item>البلد</item>
+        <item>الشمس</item>
+        <item>الليل</item>
+        <item>الضحى</item>
+        <item>الشرح</item>
+        <item>التين</item>
+        <item>العلق</item>
+        <item>القدر</item>
+        <item>البينة</item>
+        <item>الزلزلة</item>
+        <item>العاديات</item>
+        <item>القارعة</item>
+        <item>التكاثر</item>
+        <item>العصر</item>
+        <item>الهمزة</item>
+        <item>الفيل</item>
+        <item>قريش</item>
+        <item>الماعون</item>
+        <item>الكوثر</item>
+        <item>الكافرون</item>
+        <item>النصر</item>
+        <item>المسد</item>
+        <item>الإخلاص</item>
+        <item>الفلق</item>
+        <item>الناس</item>
+    </string-array>
 </resources>
