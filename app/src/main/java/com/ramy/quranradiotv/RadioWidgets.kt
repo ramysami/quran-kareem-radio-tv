@@ -7,8 +7,16 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
 import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
 import android.os.Build
+import android.os.Bundle
+import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.appcompat.content.res.AppCompatResources
@@ -43,19 +51,43 @@ object RadioWidgets {
         RadioWidgetCompactProvider::class.java to R.layout.widget_radio_compact,
     )
 
-    /** Redraws every placed widget. A no-op when the user has placed none. */
+    /**
+     * Redraws every placed widget. A no-op when the user has placed none.
+     *
+     * One at a time rather than all at once, because the backdrop is cut to the
+     * shape of the particular widget it goes behind, and two widgets of the same
+     * kind can be sitting at different sizes.
+     */
     fun refresh(context: Context) {
         val manager = runCatching { AppWidgetManager.getInstance(context) }.getOrNull() ?: return
         LAYOUTS.forEach { (provider, layout) ->
             val ids = runCatching {
                 manager.getAppWidgetIds(ComponentName(context, provider))
             }.getOrNull() ?: return@forEach
-            if (ids.isEmpty()) return@forEach
-            runCatching { manager.updateAppWidget(ids, build(context, layout)) }
+            ids.forEach { id ->
+                runCatching { manager.updateAppWidget(id, build(context, layout, sizeOf(manager, id, layout))) }
+            }
         }
     }
 
-    fun build(context: Context, layoutRes: Int): RemoteViews {
+    /**
+     * What the launcher says this widget currently occupies, in dp. Portrait
+     * takes the narrower width and the taller height, which is the shape the
+     * widget spends most of its life in; a launcher that declines to say falls
+     * back to the size declared for it.
+     */
+    fun sizeOf(manager: AppWidgetManager, appWidgetId: Int, layoutRes: Int): SizeF {
+        val fallback = if (layoutRes == R.layout.widget_radio_compact) COMPACT_SIZE else STANDARD_SIZE
+        val options: Bundle = runCatching {
+            manager.getAppWidgetOptions(appWidgetId)
+        }.getOrNull() ?: return fallback
+
+        val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+        val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
+        return if (width > 0 && height > 0) SizeF(width.toFloat(), height.toFloat()) else fallback
+    }
+
+    fun build(context: Context, layoutRes: Int, sizeDp: SizeF): RemoteViews {
         val views = RemoteViews(context.packageName, layoutRes)
         val phase = PlaybackStatus.phase
         val showPause = phase.isActive
@@ -118,6 +150,19 @@ object RadioWidgets {
             views.setViewVisibility(R.id.widget_sleep_minutes, View.GONE)
         }
 
+        // The painting, or the plain panel the layout already draws behind it.
+        val backdrop = runCatching { backdrop(context, sizeDp) }.getOrNull()
+        if (backdrop == null) {
+            views.setViewVisibility(R.id.widget_backdrop, View.GONE)
+            views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg)
+        } else {
+            views.setImageViewBitmap(R.id.widget_backdrop, backdrop)
+            views.setViewVisibility(R.id.widget_backdrop, View.VISIBLE)
+            // The bitmap carries the frame itself, so the drawable underneath
+            // would only draw a second stroke a hair outside the first.
+            views.setInt(R.id.widget_root, "setBackgroundResource", 0)
+        }
+
         views.setOnClickPendingIntent(R.id.widget_play_pause, togglePendingIntent(context))
         views.setOnClickPendingIntent(R.id.widget_sleep, sleepPendingIntent(context))
 
@@ -175,6 +220,113 @@ object RadioWidgets {
         }
     }
 
+    // ---------------------------------------------------------------- backdrop
+
+    /**
+     * The widget's whole backdrop as a single bitmap: the app's painting,
+     * cropped to the widget's shape, under the scrim that keeps gold-on-navy
+     * text readable over a picture, inside the rounded frame.
+     *
+     * One bitmap rather than a stack of views because RemoteViews cannot clip an
+     * image to rounded corners before API 31, and a square picture behind a
+     * rounded frame shows its corners at every one of them.
+     *
+     * Drawn at a fraction of the widget's real size and stretched back up on the
+     * way in. A soft painting survives that easily, and it matters: RemoteViews
+     * cross to the launcher over binder, which refuses a payload beyond a
+     * generous but real limit, and a widget that trips it draws nothing at all.
+     *
+     * Null when the user asked for no background image, which leaves the plain
+     * panel the layout draws on its own — the same answer the app gives.
+     */
+    private fun backdrop(context: Context, sizeDp: SizeF): Bitmap? {
+        if (Prefs(context).backgroundMode == Prefs.BG_NONE) return null
+
+        val density = context.resources.displayMetrics.density
+        val fullWidthPx = sizeDp.width * density
+        if (fullWidthPx < 1f || sizeDp.height < 1f) return null
+
+        val scale = minOf(1f, MAX_BACKDROP_PX / fullWidthPx)
+        val width = (fullWidthPx * scale).toInt().coerceAtLeast(1)
+        val height = (sizeDp.height * density * scale).toInt().coerceAtLeast(1)
+
+        val key = "${width}x$height"
+        cachedBackdrop?.let { if (key == cachedKey && !it.isRecycled) return it }
+
+        val art = decodeArtwork(context, width, height) ?: return null
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val radius = cornerRadiusDp(context) * density * scale
+        val bounds = RectF(0f, 0f, width.toFloat(), height.toFloat())
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Centre-crop, as an ImageView would, but expressed as a shader so the
+        // rounded corners come out of the same anti-aliased draw as the picture.
+        val cover = maxOf(width / art.width.toFloat(), height / art.height.toFloat())
+        paint.shader = BitmapShader(art, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+            setLocalMatrix(
+                Matrix().apply {
+                    setScale(cover, cover)
+                    postTranslate(
+                        (width - art.width * cover) / 2f,
+                        (height - art.height * cover) / 2f
+                    )
+                }
+            )
+        }
+        canvas.drawRoundRect(bounds, radius, radius, paint)
+
+        paint.shader = null
+        paint.color = ContextCompat.getColor(context, R.color.widget_scrim)
+        canvas.drawRoundRect(bounds, radius, radius, paint)
+
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = density * scale
+        paint.color = ContextCompat.getColor(context, R.color.panel_stroke)
+        val inset = paint.strokeWidth / 2f
+        canvas.drawRoundRect(
+            RectF(inset, inset, width - inset, height - inset),
+            radius,
+            radius,
+            paint
+        )
+
+        art.recycle()
+        cachedBackdrop = bitmap
+        cachedKey = key
+        return bitmap
+    }
+
+    /**
+     * The landscape painting, deliberately, rather than the bg_default alias:
+     * the alias would hand a phone the portrait one, and a widget is a wide,
+     * shallow strip that would show little more than a slice down its middle.
+     */
+    private fun decodeArtwork(context: Context, width: Int, height: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeResource(context.resources, R.drawable.bg_artwork_landscape, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= width && bounds.outHeight / (sample * 2) >= height) {
+            sample *= 2
+        }
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sample
+            inPreferredConfig = Bitmap.Config.RGB_565 // no alpha in a painting; halves the memory
+        }
+        return BitmapFactory.decodeResource(context.resources, R.drawable.bg_artwork_landscape, options)
+    }
+
+    /** Android 12 launchers have their own opinion; widget_bg follows it too. */
+    private fun cornerRadiusDp(context: Context): Float =
+        if (Build.VERSION.SDK_INT >= 31) {
+            context.resources.getDimension(android.R.dimen.system_app_widget_background_radius) /
+                context.resources.displayMetrics.density
+        } else {
+            18f
+        }
+
     // ---------------------------------------------------------------- icons
 
     private fun icon(context: Context, drawableRes: Int, colorRes: Int): Bitmap? {
@@ -191,6 +343,26 @@ object RadioWidgets {
 
     /** Rasterise generously; the ImageViews scale down, and widgets get resized. */
     private const val ICON_DP = 48
+
+    /**
+     * The widest the backdrop is drawn, whatever the widget's real size. Keeps
+     * what crosses to the launcher comfortably inside what binder will carry.
+     */
+    private const val MAX_BACKDROP_PX = 600f
+
+    /** Fallbacks matching the sizes the two widgets declare to the launcher. */
+    private val STANDARD_SIZE = SizeF(250f, 110f)
+    private val COMPACT_SIZE = SizeF(180f, 50f)
+
+    /** The backdrop survives between updates; only its size and mode change it. */
+    private var cachedBackdrop: Bitmap? = null
+    private var cachedKey: String? = null
+
+    /** Dropped when the background setting changes, so the next draw rebuilds. */
+    fun clearBackdropCache() {
+        cachedBackdrop = null
+        cachedKey = null
+    }
 }
 
 /**
@@ -206,7 +378,29 @@ abstract class RadioWidgetProviderBase : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        appWidgetManager.updateAppWidget(appWidgetIds, RadioWidgets.build(context, layoutRes))
+        // One at a time: the backdrop is cut to the shape of each widget, and
+        // two of the same kind can be sitting at different sizes.
+        appWidgetIds.forEach { id ->
+            val size = RadioWidgets.sizeOf(appWidgetManager, id, layoutRes)
+            appWidgetManager.updateAppWidget(id, RadioWidgets.build(context, layoutRes, size))
+        }
+    }
+
+    /**
+     * Resizing changes the shape the backdrop has to be cut to, and the
+     * launcher tells us about it here rather than through onUpdate.
+     */
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        val size = RadioWidgets.sizeOf(appWidgetManager, appWidgetId, layoutRes)
+        runCatching {
+            appWidgetManager.updateAppWidget(appWidgetId, RadioWidgets.build(context, layoutRes, size))
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {

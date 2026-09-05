@@ -9,100 +9,120 @@
     As with the standard widget, the root deliberately has no click target:
     tapping the widget itself is meant to do nothing.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_bg"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:background="@drawable/widget_bg">
 
+    <!--
+        As in the standard widget: one bitmap carrying painting, scrim and frame.
+
+        Hidden until RadioWidgets has a backdrop to put here, so the widget
+        picker's preview and a user who asked for no background image both keep
+        the plain panel the frame above draws.
+    -->
     <ImageView
-        android:id="@+id/widget_play_pause"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:background="@drawable/widget_btn_round"
-        android:contentDescription="@string/action_play"
-        android:padding="12dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_play" />
+        android:id="@+id/widget_backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="fitXY"
+        android:visibility="gone" />
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:paddingStart="10dp"
-        android:paddingEnd="8dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
-        <TextView
-            android:id="@+id/widget_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/station_name"
-            android:textColor="@color/gold_bright"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+        <ImageView
+            android:id="@+id/widget_play_pause"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/widget_btn_round"
+            android:contentDescription="@string/action_play"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_play" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/widget_dot"
-                android:layout_width="7dp"
-                android:layout_height="7dp"
-                android:contentDescription="@null"
-                android:src="@drawable/dot_status"
-                android:visibility="gone" />
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="8dp">
 
             <TextView
-                android:id="@+id/widget_status"
+                android:id="@+id/widget_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
+                android:text="@string/station_name"
+                android:textColor="@color/gold_bright"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/widget_dot"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/dot_status"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/widget_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/widget_sleep"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/widget_btn_pill"
+            android:gravity="center"
+            android:minWidth="40dp"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <ImageView
+                android:id="@+id/widget_sleep_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/action_sleep_timer"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_timer" />
+
+            <TextView
+                android:id="@+id/widget_sleep_minutes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:maxLines="1"
+                android:textColor="@color/gold_bright"
+                android:textSize="13sp"
+                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/widget_sleep"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:background="@drawable/widget_btn_pill"
-        android:gravity="center"
-        android:minWidth="40dp"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp">
-
-        <ImageView
-            android:id="@+id/widget_sleep_icon"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:contentDescription="@string/action_sleep_timer"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_timer" />
-
-        <TextView
-            android:id="@+id/widget_sleep_minutes"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:maxLines="1"
-            android:textColor="@color/gold_bright"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-    </LinearLayout>
-</LinearLayout>
+</FrameLayout>

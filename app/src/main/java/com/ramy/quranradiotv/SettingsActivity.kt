@@ -82,12 +82,12 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.rowBgDefault.root.setOnClickListener {
             prefs.backgroundMode = Prefs.BG_DEFAULT
-            render()
+            backgroundChanged()
         }
 
         binding.rowBgNone.root.setOnClickListener {
             prefs.backgroundMode = Prefs.BG_NONE
-            render()
+            backgroundChanged()
         }
 
         binding.rowBgCustom.root.setOnClickListener { showCustomBackgroundDialog() }
@@ -95,7 +95,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowBgReset.root.setOnClickListener {
             prefs.resetBackground()
             BackgroundLoader.clearCache(this)
-            render()
+            backgroundChanged()
             toast(getString(R.string.saved))
         }
 
@@ -119,6 +119,17 @@ class SettingsActivity : AppCompatActivity() {
                     .start()
             }
         }
+    }
+
+    /**
+     * The home-screen widgets draw the same background choice, so a change here
+     * has to reach them too — they otherwise sit unchanged until playback next
+     * moves.
+     */
+    private fun backgroundChanged() {
+        RadioWidgets.clearBackdropCache()
+        RadioWidgets.refresh(this)
+        render()
     }
 
     private fun render() {
@@ -310,7 +321,7 @@ class SettingsActivity : AppCompatActivity() {
                 BackgroundLoader.clearCache(this)
                 prefs.customBackgroundUri = url
                 prefs.backgroundMode = Prefs.BG_CUSTOM
-                render()
+                backgroundChanged()
                 toast(getString(R.string.custom_bg_applied))
             }
         }
@@ -341,7 +352,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         prefs.customBackgroundUri = uri.toString()
         prefs.backgroundMode = Prefs.BG_CUSTOM
-        render()
+        backgroundChanged()
         toast(getString(R.string.custom_bg_applied))
     }
 

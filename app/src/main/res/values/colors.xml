@@ -20,5 +20,9 @@
     <color name="panel_fill_focused">#FFD9AE72</color>
     <color name="panel_stroke">#33D9AE72</color>
 
+    <!-- Laid over the painting behind a widget, where gold-on-navy text has to
+         stay readable against a picture rather than a flat panel. -->
+    <color name="widget_scrim">#C4071531</color>
+
     <color name="transparent">#00000000</color>
 </resources>
