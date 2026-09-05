@@ -214,9 +214,13 @@
             tools:visibility="visible"
             tools:text="Listening for the recitation…" />
 
-        <!-- Primary transport, with the Surah button beside it -->
+        <!--
+          Primary transport, with the Surah button beside it. The row spans the
+          panel and Play takes what is left over, so "Which Surah?" keeps its
+          whole label on one line however narrow the handset is.
+        -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:orientation="horizontal"
@@ -226,9 +230,10 @@
 
             <LinearLayout
                 android:id="@+id/btnPlayPause"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="@dimen/btn_primary_height"
-                android:minWidth="200dp"
+                android:minWidth="150dp"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:paddingLeft="26dp"

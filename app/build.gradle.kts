@@ -11,11 +11,14 @@ android {
         applicationId = "com.ramy.quranradiotv"
         minSdk = 21
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.4"
+        versionCode = 3
+        versionName = "1.4.1"
 
+        // Real phones, tablets and television boxes are all ARM. The speech
+        // runtime alone carries twenty megabytes per architecture, so a release
+        // ships only these two; debug adds the emulator's below.
         ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
         }
     }
 
@@ -25,11 +28,20 @@ android {
             // the release build keeps using it: a new key would refuse to install
             // over the copies people already have.
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+
+        // Only so the app can be run on an x86 emulator during development;
+        // these architectures are deliberately absent from a release.
+        debug {
+            ndk {
+                abiFilters += listOf("x86", "x86_64")
+            }
         }
     }
 

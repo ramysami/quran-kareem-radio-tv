@@ -94,6 +94,10 @@ appears, with the panel recentred vertically.
 
 Requires JDK 17+ and the Android SDK (compileSdk 34).
 
+A release build carries only the two ARM architectures, which is every real phone,
+tablet and television box; the speech runtime alone is twenty megabytes per
+architecture. A debug build adds x86 and x86_64 so the app still runs on an emulator.
+
 ```bash
 ./gradlew :app:assembleDebug
 ```
